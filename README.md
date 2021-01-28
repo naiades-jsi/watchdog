@@ -2,9 +2,10 @@
 
 WatchDog is a utility program that helps monitoring the infrastructure. It can monitor whether certain components are up and running and even check databases for recent data.
 
-Database access is set up in ```src/common/storage.json```.
+Try to remove DB dependencies of Watchdog (flat files only or file-based DB if possible).
 
-Database setup is performed in ```src/storage/watchdog```. Database gets updated the same way as prediction and raw databases. Check ```src/storage/README.md```.
+> Database access is set up in ```src/common/storage.json```.
+> Database setup is performed in ```src/storage/watchdog```. Database gets updated the same way as prediction and raw databases. Check ```src/storage/README.md```.
 
 You can start it with `npm install`, however, it would be worth using PM2 for this and restart the service regularly (i.e. every hour): `pm2 start index.js --restart-delay 3600000`.
 

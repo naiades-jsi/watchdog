@@ -1,0 +1,16 @@
+insert into type (ty_name) values ('master');
+insert into type (ty_name) values ('ping');
+insert into type (ty_name) values ('pingCheckIn');
+insert into type (ty_name) values ('kafkaTopicLastTs');
+insert into type (ty_name) values ('socket');
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('WatchDog', 1, '', 1);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('GUI', 2, '{ "target": "http://localhost:8000" }', 120);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('GUI-server', 2, '{ "target": "http://localhost:3000" }', 120);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('StreamFusion', 3, '{ "secret": "051de32597041e41f73b97d61c67a13b" }', 60);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('StreamModelling', 3, '{ "secret": "b9347c25aba4d3ba6e8f61d05fd1c011" }', 60);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('MariaDB', 5, '{ "target": "localhost", "port": 3306 }', 60);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('Kafka', 5, '{ "target": "192.168.82.187", "port": 9092 }', 60);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('Zookeeper', 5, '{ "target": "192.168.82.187", "port": 2181 }', 60);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('Kafka topic - S1', 4, '{ "target": "192.168.82.187:9092", "topic": "measurements_node_S1", "type": "static" }', 120);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('Kafka topic - N1', 4, '{ "target": "192.168.82.187:9092", "topic": "measurements_node_N1", "type": "timevalue" }', 120);
+insert into source (so_name, so_typeid, so_config, so_frequency) values ('Kafka topic - W1', 4, '{ "target": "192.168.82.187:9092", "topic": "measurements_node_W1", "type": "weather" }', 120);

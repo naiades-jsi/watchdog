@@ -11,7 +11,7 @@ You can start it with `npm install`, however, it would be worth using PM2 for th
 
 ## Endpoints and API
 
-By default Watchdog server is active on ```http://localhost:3001```.
+By default Watchdog server is active on ```http://localhost:8080```.
 
 * ```/ping?id=ID&secret=SECRET``` - Register ping by the component. `ID` should be set to the service ID in the database and `SECRET` to the corresponding secret.
 

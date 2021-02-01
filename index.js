@@ -1,95 +1,116 @@
-// watchdog
+/**
+ * WATCHDOG server
+ */
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const AppDao = require('./services/dao');
+const SourceRepository = require('./services/sourceRepository');
+const AlarmsRepository = require('./services/alarmRepository');
+const TypeRepository = require('./services/typeRepository');
 
-// includes
-// express related includes
-let express = require('express');
-let bodyParser = require('body-parser');
-let cors = require('cors');
-let fs = require('fs');
-let schedule = require('node-schedule');
+const dao = new AppDao();
+const sourceRepo = new SourceRepository(dao);
+const alarmsRepo = new AlarmsRepository(dao);
+const typeRepo = new TypeRepository(dao);
 
-// service
-let WatchDog = require('./services/watchdog');
-let w = new WatchDog();
+/**
+ * DATABASE initialization
+ */
+sourceRepo.createTable()
+    .then(() => alarmsRepo.createTable())
+    .then(() => typeRepo.createTable());
 
-// parameters
-const port = 3001;
-const cron_schedule = '*/3 * * * * *'; // every 5 seconds
-
-// variables
-let count = 0; // counter for repetitions with no action
-
-// new express app
-let app = express();
-app.use(cors({origin: 'http://localhost:8000'}));
+/**
+ * SERVER configuration
+ */
+const HTTP_PORT = 8080;
+const app = express();
+app.listen(HTTP_PORT, () => {
+    console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
+});
+app.use(cors({origin: 'http://localhost:4200'}));
 app.use(bodyParser.json({limit: '50mb'}));
 
-// prepare routes
+/**
+ * ENDPOINTS
+ */
 app.get('/', (req, res) => {
     res.send('Watchdog');
-})
-
-// prepare routes
-app.get('/ping', async (req, res) => {
-    const result = await w.updatePing(req.query.id, req.query.secret);
-    if (count) console.log();
-    if (result) console.log("Source " + req.query.id + " checked in!");
-    else console.log("Wrong credentials for source " + req.query.id + "!");
-    count = 0;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(result));
-})
-
-// prepare routes
-app.get('/status', async (req, res) => {
-    const result = await w.storage.getSources();
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(result));
-})
-
-// prepare routes
-app.get('/alarms', async (req, res) => {
-    let n = 10;
-    if (req.query.n) n = parseInt(req.query.n);
-    const result = await w.storage.getAlarms(n);
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(result));
-})
-
-// start server
-let server = app.listen(port, 'localhost', () => {
-    let host = server.address().address;
-    let port = server.address().port;
-
-    console.log("Watchdog listening at http://%s:%s", host, port);
-})
-
-// start scheduler
-var j = schedule.scheduleJob(cron_schedule, async () => {
-    // console.log('Invoking watchdog process');
-    w.updateMasterPing();
-
-    // select the source
-    let source = await w.selectNextSource();
-
-    // test the source
-    // instead of if while can be used and the line
-    // with updating source uncommented; not recommended
-    // as the system is rather small and pings will be
-    // distributed after first iteration
-    if (source.diffts > 0) {
-        if (count) console.log();
-        console.log("Checking: ", source.so_name);
-        await w.testSource(source);
-        count = 0;
-        // source = await w.selectNextSource();
-    } else {
-        process.stdout.write("*");
-        count++;
-    };
-
-    // write alarms if needed
 });
 
-// start kafka
-w.startTestKafka();
+app.get('/ping', (req, res) => {
+    res.status(200).send('Pong!');
+});
+
+/**
+ * SOURCES
+ */
+app.get('/sources', (req, res) => {
+    sourceRepo.getAll()
+        .then((sources) => {
+            res.send(sources);
+        });
+});
+
+app.get('/source/:id', (req, res) => {
+    sourceRepo.getById(req.params)
+        .then((source) => {
+            res.send(source);
+        });
+});
+
+app.post('/source', (req, res) => {
+    sourceRepo.create(req.body.name, req.body.type_id, req.body.config, req.body.frequency)
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+/**
+ * ALARMS
+ */
+app.get('/alarms', (req, res) => {
+    alarmsRepo.getAll()
+        .then((alarms) => {
+            res.send(alarms);
+        });
+});
+
+app.get('/alarm/:id', (req, res) => {
+    alarmsRepo.getById(req.params)
+        .then((alarm) => {
+            res.send(alarm);
+        });
+});
+
+app.post('/alarm', (req, res) => {
+    alarmsRepo.create(req.body.name, req.body.source_id, req.body.description)
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+/**
+ * TYPE
+ */
+app.get('/types', (req, res) => {
+    typeRepo.getAll()
+        .then((types) => {
+            res.send(types);
+        });
+});
+
+app.get('/type/:id', (req, res) => {
+    typeRepo.getById(req.params)
+        .then((type) => {
+            res.send(type);
+        });
+});
+
+app.post('/type', (req, res) => {
+    typeRepo.create(req.body.name)
+        .then((response) => {
+            res.send(response);
+        });
+});

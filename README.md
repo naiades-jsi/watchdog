@@ -11,8 +11,8 @@ You can start it with `npm install`, however, it would be worth using PM2 for th
 
 ## Frontend
 
-Frontend is build using ```Angular``` and accessible on ```http://localhost:4200```.
-To start frontend run:
+Frontend is build using ```Angular``` and accessible on ```http://localhost:4200```. <br>
+To start frontend run the following commands:
 ```
 cd frontend
 ng serve --open

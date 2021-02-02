@@ -10,14 +10,14 @@ class EmailService {
             host: "smtp.mailtrap.io",
             port: 2525,
             auth: {
-                user: "c7c8668d76b453",
-                pass: "9b936b928c22a2"
+                user: "",
+                pass: ""
             }
         });
 
         const email = {
             from: 'no-reply@watchdog.com',
-            to: 'mark.bogataj18@gmail.com',
+            to: '',
             subject: subject,
             text: text
         };

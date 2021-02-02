@@ -6,7 +6,7 @@ class SourceRepository {
     createTable(){
         const sql = `
             CREATE TABLE IF NOT EXISTS source(
-            id INTEGER auto increment PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             ts DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
             name VARCHAR(64) NOT NULL,
             type_id INTEGER NOT NULL,

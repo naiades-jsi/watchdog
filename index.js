@@ -9,6 +9,13 @@ const SourceRepository = require('./services/sourceRepository');
 const AlarmsRepository = require('./services/alarmRepository');
 const TypeRepository = require('./services/typeRepository');
 
+const {sources} = require('./schema/testSources.js');
+const {types} = require('./schema/testTypes');
+
+// const EmailService = require('./services/emailService');
+// const emailService = new EmailService();
+// emailService.composeAndSend("This is a custom subject", "This is the mail content");
+
 const dao = new AppDao();
 const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
@@ -17,9 +24,17 @@ const typeRepo = new TypeRepository(dao);
 /**
  * DATABASE initialization
  */
-sourceRepo.createTable()
-    .then(() => alarmsRepo.createTable())
-    .then(() => typeRepo.createTable());
+// sourceRepo.createTable()
+//     .then(() => alarmsRepo.createTable())
+//     .then(() => typeRepo.createTable());
+
+// sources.forEach(el => {
+//     sourceRepo.create(el.name, el.type_id, el.config, el.frequency);
+// });
+
+// types.forEach(el => {
+//     typeRepo.create(el.name);
+// });
 
 /**
  * SERVER configuration

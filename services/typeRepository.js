@@ -5,7 +5,7 @@ class TypeRepository {
 
     createTable(){
         const sql = `CREATE TABLE IF NOT EXISTS type(
-            id INTEGER auto increment PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             ts DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
             name VARCHAR(255) NOT NULL)`;
         return this.dao.run(sql);

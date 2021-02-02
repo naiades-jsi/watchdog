@@ -4,10 +4,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const schedule = require('node-schedule');
 const AppDao = require('./services/dao');
 const SourceRepository = require('./services/sourceRepository');
 const AlarmsRepository = require('./services/alarmRepository');
 const TypeRepository = require('./services/typeRepository');
+const Watchdog = require('./services/watchdog');
 
 const {sources} = require('./schema/testSources.js');
 const {types} = require('./schema/testTypes');
@@ -20,6 +22,7 @@ const dao = new AppDao();
 const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
 const typeRepo = new TypeRepository(dao);
+const watchdog = new Watchdog();
 
 /**
  * DATABASE initialization
@@ -39,6 +42,7 @@ const typeRepo = new TypeRepository(dao);
 /**
  * SERVER configuration
  */
+const cron_schedule = '*/5 * * * * *'
 const HTTP_PORT = 8080;
 const app = express();
 app.listen(HTTP_PORT, () => {
@@ -128,4 +132,11 @@ app.post('/type', (req, res) => {
         .then((response) => {
             res.send(response);
         });
+});
+
+/**
+ * CRON SCHEDULER
+ */
+const job = schedule.scheduleJob(cron_schedule, async () => {
+    watchdog.testCall();
 });

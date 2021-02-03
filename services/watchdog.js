@@ -1,13 +1,20 @@
 const isReachable = require('is-reachable');
 
 class Watchdog {
-    constructor(){}
+    constructor(logsRepository){
+        this.logsRepo = logsRepository
+    }
 
     async testCall(){
         const date = new Date();
         console.log("PING! " + date.toLocaleTimeString());
         const res = await this.testSocket();
         console.log(res);
+        if(res){
+            this.logsRepo.create(2, "UP");
+        } else {
+            this.logsRepo.create(2, "DOWN");
+        }
     }
 
     async testSocket() {

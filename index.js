@@ -1,14 +1,19 @@
 /**
  * WATCHDOG server
  */
+require('datejs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const schedule = require('node-schedule');
+const dotenv = require('dotenv');
+dotenv.config();
+
 const AppDao = require('./services/dao');
 const SourceRepository = require('./services/sourceRepository');
 const AlarmsRepository = require('./services/alarmRepository');
 const TypeRepository = require('./services/typeRepository');
+const LogsRepository = require('./services/logsService');
 const Watchdog = require('./services/watchdog');
 
 const {sources} = require('./schema/testSources.js');
@@ -22,14 +27,16 @@ const dao = new AppDao();
 const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
 const typeRepo = new TypeRepository(dao);
-const watchdog = new Watchdog();
+const logsRepo = new LogsRepository(dao);
+const watchdog = new Watchdog(logsRepo);
 
 /**
  * DATABASE initialization
  */
 // sourceRepo.createTable()
 //     .then(() => alarmsRepo.createTable())
-//     .then(() => typeRepo.createTable());
+//     .then(() => typeRepo.createTable())
+//     .then(() => logsRepo.createTable());
 
 // sources.forEach(el => {
 //     sourceRepo.create(el.name, el.type_id, el.config, el.frequency);
@@ -42,13 +49,13 @@ const watchdog = new Watchdog();
 /**
  * SERVER configuration
  */
-const cron_schedule = '*/5 * * * * *'
-const HTTP_PORT = 8080;
+const cron_schedule_ping = '*/5 * * * * *';
+const cron_schedule_clean = '0 */1 * * * *'
 const app = express();
-app.listen(HTTP_PORT, () => {
-    console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
+app.listen(process.env.HTTP_PORT, () => {
+    console.log("Server running on port %PORT%".replace("%PORT%", process.env.HTTP_PORT))
 });
-app.use(cors({origin: 'http://localhost:4200'}));
+app.use(cors({origin: process.env.FRONT_URL}));
 app.use(bodyParser.json({limit: '50mb'}));
 
 /**
@@ -135,8 +142,45 @@ app.post('/type', (req, res) => {
 });
 
 /**
- * CRON SCHEDULER
+ * LOGS
  */
-const job = schedule.scheduleJob(cron_schedule, async () => {
+app.get('/logs', (req, res) => {
+    logsRepo.getAll()
+        .then((types) => {
+            res.send(types);
+        });
+});
+
+app.get('/log/:id', (req, res) => {
+    logsRepo.getById(req.params)
+        .then((type) => {
+            res.send(type);
+        });
+});
+
+app.post('/log', (req, res) => {
+    logsRepo.create(req.body.name)
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+/**
+ * CRON SCHEDULER for checking if system is working
+ */
+const job = schedule.scheduleJob(cron_schedule_ping, async () => {
     watchdog.testCall();
 });
+
+/**
+ * CRON SCHEDULER for deleting data older than 1 month
+ */
+const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
+    // FOR NOW IT DELETES OLD DATA EVERY MINUTE
+    const date = new Date();
+    
+    const newDate = new Date(date - 20000).add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+    logsRepo.deleteByTimestamp(newDate);
+});
+
+

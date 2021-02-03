@@ -9,6 +9,12 @@ Try to remove DB dependencies of Watchdog (flat files only or file-based DB if p
 
 You can start it with `npm install`, however, it would be worth using PM2 for this and restart the service regularly (i.e. every hour): `pm2 start index.js --restart-delay 3600000`.
 
+## TODO
+* SourceRepository.js:
+    * add query to update timestamps of the source (last_check, last_success)
+    * add query to get the source, that has the biggest time before last update
+
+
 ## Frontend
 
 Frontend is build using ```Angular``` and accessible on ```http://localhost:4200```. <br>

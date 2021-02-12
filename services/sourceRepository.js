@@ -35,8 +35,15 @@ class SourceRepository {
 
     getNextSource(){
         const sql = `SELECT * FROM source 
+                    WHERE type_id != 4
                     ORDER BY last_check ASC LIMIT 1`;
         return this.dao.get(sql);
+    }
+
+    getKafkaSources(){
+        const sql = `SELECT * FROM source 
+                    WHERE type_id = 4`;
+        return this.dao.all(sql);
     }
 
     update(source){

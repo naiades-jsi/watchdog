@@ -5,6 +5,7 @@ require('datejs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const schedule = require('node-schedule');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -26,7 +27,7 @@ const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
 const typeRepo = new TypeRepository(dao);
 const logsRepo = new LogsRepository(dao);
-const watchdog = new Watchdog(sourceRepo, logsRepo);
+const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo);
 
 /**
  * DATABASE initialization
@@ -74,6 +75,13 @@ app.get('/sources', (req, res) => {
     sourceRepo.getAll()
         .then((sources) => {
             res.send(sources);
+        });
+});
+
+app.get('/sourcesKafka', (req, res) => {
+    sourceRepo.getKafkaSources()
+        .then((kafkaSources) => {
+            res.send(kafkaSources);
         });
 });
 
@@ -166,20 +174,23 @@ app.post('/log', (req, res) => {
 /**
  * CRON SCHEDULER for checking if system is working
  */
-// const job = schedule.scheduleJob(cron_schedule_ping, async () => {
-//     let nextSource = await sourceRepo.getNextSource();
-//     watchdog.checkSource(nextSource);
-// });
+const job = schedule.scheduleJob(cron_schedule_ping, async () => {
+    let nextSource = await sourceRepo.getNextSource();
+    watchdog.checkSource(nextSource);
+});
 
 /**
  * CRON SCHEDULER for deleting data older than 1 month
  */
-// const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
-//     // FOR NOW IT DELETES OLD DATA EVERY MINUTE
-//     const date = new Date();
+const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
+    // FOR NOW IT DELETES OLD DATA EVERY MINUTE
+    const date = new Date();
     
-//     const newDate = new Date(date - 20000).add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-//     logsRepo.deleteByTimestamp(newDate);
-// });
+    const newDate = new Date(date - 20000).add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+    logsRepo.deleteByTimestamp(newDate);
+});
 
-
+/**
+ * START Kafka
+ */
+watchdog.testKafkaTopic();

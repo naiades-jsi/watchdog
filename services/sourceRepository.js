@@ -33,6 +33,12 @@ class SourceRepository {
         return this.dao.all(sql);
     }
 
+    getNextSource(){
+        const sql = `SELECT * FROM source 
+                    ORDER BY last_check ASC LIMIT 1`;
+        return this.dao.get(sql);
+    }
+
     update(source){
         const { id, ts, name, type_id, config, last_check, frequency, last_success } = source;
         const sql = `UPDATE source 
@@ -40,7 +46,7 @@ class SourceRepository {
             name = ?,
             type_id = ?,
             config = ?,
-            last_check = ?
+            last_check = ?,
             frequency = ?,
             last_success = ?
             WHERE id = ?`;

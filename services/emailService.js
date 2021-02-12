@@ -1,33 +1,20 @@
-const nodemailer = require('nodemailer');
+const sendmail = require('sendmail')();
 const dotenv = require('dotenv');
 dotenv.config();
 
 class EmailService {
-    constructor(){}
+    constructort(){}
 
-    composeAndSend(subject, text){
-        let transporter = nodemailer.createTransport({
-            host: "smtp.mailtrap.io",
-            port: 2525,
-            auth: {
-                user: "",
-                pass: ""
-            }
-        });
-
-        const email = {
-            from: 'no-reply@watchdog.com',
-            to: '',
+    sendEmail(subject, textContent){
+        sendmail({
+            from: process.env.SENDER_EMAIL,
+            to: process.env.RECEIVER_EMAIL,
+            replyTo: process.env.SENDER_EMAIL,
             subject: subject,
-            text: text
-        };
-
-        transporter.sendMail(email, (err, info) => {
-            if (err) {
-              console.log(err)
-            } else {
-              console.log(info);
-            }
+            text: textContent
+        }, (err, reply) => {
+            console.log(err && err.stack);
+            console.log(reply);
         });
     }
 }

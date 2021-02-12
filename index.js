@@ -5,7 +5,6 @@ require('datejs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const schedule = require('node-schedule');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -19,16 +18,15 @@ const Watchdog = require('./services/watchdog');
 const {sources} = require('./schema/testSources.js');
 const {types} = require('./schema/testTypes');
 
-// const EmailService = require('./services/emailService');
-// const emailService = new EmailService();
-// emailService.composeAndSend("This is a custom subject", "This is the mail content");
+const EmailService = require('./services/emailService');
+const emailService = new EmailService();
 
 const dao = new AppDao();
 const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
 const typeRepo = new TypeRepository(dao);
 const logsRepo = new LogsRepository(dao);
-const watchdog = new Watchdog(logsRepo);
+const watchdog = new Watchdog(sourceRepo, logsRepo);
 
 /**
  * DATABASE initialization
@@ -168,19 +166,20 @@ app.post('/log', (req, res) => {
 /**
  * CRON SCHEDULER for checking if system is working
  */
-const job = schedule.scheduleJob(cron_schedule_ping, async () => {
-    watchdog.testCall();
-});
+// const job = schedule.scheduleJob(cron_schedule_ping, async () => {
+//     let nextSource = await sourceRepo.getNextSource();
+//     watchdog.checkSource(nextSource);
+// });
 
 /**
  * CRON SCHEDULER for deleting data older than 1 month
  */
-const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
-    // FOR NOW IT DELETES OLD DATA EVERY MINUTE
-    const date = new Date();
+// const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
+//     // FOR NOW IT DELETES OLD DATA EVERY MINUTE
+//     const date = new Date();
     
-    const newDate = new Date(date - 20000).add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-    logsRepo.deleteByTimestamp(newDate);
-});
+//     const newDate = new Date(date - 20000).add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+//     logsRepo.deleteByTimestamp(newDate);
+// });
 
 

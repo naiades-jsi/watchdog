@@ -193,4 +193,4 @@ const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
 /**
  * START Kafka
  */
-watchdog.testKafkaTopic();
+// watchdog.testKafkaTopic();

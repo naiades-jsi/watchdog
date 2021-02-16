@@ -32,6 +32,8 @@ By default Watchdog server is active on `http://localhost:5002`.
 ### Logs:
 * `GET /logs` - returns a list of logs from all sources in JSON format for the last 30 days.
 
+* `Get /logs/source/:id` - returns a list of logs from requested source.
+
 * `GET /log/:id` - returns a log with requested `id`.
 
 * `POST /log` - adds a new log to the database, log is send in the request body.

@@ -1,4 +1,4 @@
-class LogsService {
+class LogsRepository {
     constructor(dao){
         this.dao = dao;
     }
@@ -30,6 +30,12 @@ class LogsService {
         return this.dao.all(sql);
     }
 
+    getAllBySourceId(id){
+        const sql = `SELECT * FROM logs
+                    WHERE source_id = ?`;
+        return this.dao.all(sql, [id]);
+    }
+
     update(log){
         const { id, ts, source_id, status } = log;
         const sql = `UPDATE logs
@@ -51,4 +57,4 @@ class LogsService {
     }
 }
 
-module.exports = LogsService;
+module.exports = LogsRepository;

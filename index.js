@@ -13,7 +13,7 @@ const AppDao = require('./services/dao');
 const SourceRepository = require('./services/sourceRepository');
 const AlarmsRepository = require('./services/alarmRepository');
 const TypeRepository = require('./services/typeRepository');
-const LogsRepository = require('./services/logsService');
+const LogsRepository = require('./services/logsRepository');
 const Watchdog = require('./services/watchdog');
 
 const {sources} = require('./schema/testSources.js');
@@ -49,7 +49,7 @@ const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo);
  * SERVER configuration
  */
 const cron_schedule_ping = '*/5 * * * * *';
-const cron_schedule_clean = '0 */1 * * * *'
+const cron_schedule_clean = '0 0 0 * * *'
 const app = express();
 app.listen(process.env.HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%", process.env.HTTP_PORT))
@@ -86,7 +86,7 @@ app.get('/sourcesKafka', (req, res) => {
 });
 
 app.get('/source/:id', (req, res) => {
-    sourceRepo.getById(req.params)
+    sourceRepo.getById(req.params.id)
         .then((source) => {
             res.send(source);
         });
@@ -110,7 +110,7 @@ app.get('/alarms', (req, res) => {
 });
 
 app.get('/alarm/:id', (req, res) => {
-    alarmsRepo.getById(req.params)
+    alarmsRepo.getById(req.params.id)
         .then((alarm) => {
             res.send(alarm);
         });
@@ -134,7 +134,7 @@ app.get('/types', (req, res) => {
 });
 
 app.get('/type/:id', (req, res) => {
-    typeRepo.getById(req.params)
+    typeRepo.getById(req.params.id)
         .then((type) => {
             res.send(type);
         });
@@ -157,8 +157,15 @@ app.get('/logs', (req, res) => {
         });
 });
 
+app.get('/logs/source/:id', (req, res) => {
+    logsRepo.getAllBySourceId(req.params.id)
+        .then((logs) => {
+            res.send(logs);
+        });
+});
+
 app.get('/log/:id', (req, res) => {
-    logsRepo.getById(req.params)
+    logsRepo.getById(req.params.id)
         .then((type) => {
             res.send(type);
         });

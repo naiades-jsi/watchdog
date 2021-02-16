@@ -23,6 +23,15 @@ export class LogsService {
         return res;
     }
 
+    public getAllLogsForSource(id: number): Promise<Log[]> {
+        const url = `${this.apiUrl}/logs/source/${id}`;
+        const res = this.http
+                        .get(url)
+                        .toPromise()
+                        .catch(this.handleError);
+        return res;
+    }
+
     public getLog(id: number): Promise<Log> {
         const url = `${this.apiUrl}/log/${id}`;
         const res = this.http

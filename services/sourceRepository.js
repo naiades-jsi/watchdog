@@ -24,7 +24,7 @@ class SourceRepository {
 
     getById(id){
         const sql = `SELECT * FROM source
-                    WHERE id = ?`;
+                    WHERE source.id = ?`;
         return this.dao.get(sql, [id]);
     }
 

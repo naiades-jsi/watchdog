@@ -1,5 +1,5 @@
 export class Type {
-    ID: number;
-    timestamp: string;
-    name: string;
+    ID!: number;
+    timestamp!: string;
+    name!: string;
 }

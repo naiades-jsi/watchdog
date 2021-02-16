@@ -1,10 +1,10 @@
 export class Source {
-    ID: number;
-    timestamp: string;
-    name: string;
-    typeId: string;
-    config: string;
-    last: string;
-    frequency: string;
-    lastSuccess: string;
+    ID!: number;
+    ts!: string;
+    name!: string;
+    type_id!: string;
+    config!: string;
+    last_check!: string;
+    frequency!: number;
+    last_success!: string;
 }

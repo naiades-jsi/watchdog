@@ -1,7 +1,7 @@
-export class Alarms {
+export class Alarm {
     ID: number;
     timestamp: string;
     name: string;
-    sourceId: string;
+    sourceId: number;
     description: string;
 }

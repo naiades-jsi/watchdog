@@ -4,7 +4,7 @@ WatchDog is a utility program that helps monitoring the infrastructure. It can m
 
 ## Frontend
 
-Frontend is build using `Angular` and accessible on `http://localhost:4200`. <br>
+Frontend is build using `Angular` and accessible on `http://localhost:5001`. <br>
 To start frontend run the following commands:
 ```
 cd frontend
@@ -13,7 +13,7 @@ ng serve --open
 
 ## Endpoints and API
 
-By default Watchdog server is active on `http://localhost:8080`.
+By default Watchdog server is active on `http://localhost:5002`.
 
 ### Sources:
 * `GET /sources` - returns a list of all sources in JSON format.

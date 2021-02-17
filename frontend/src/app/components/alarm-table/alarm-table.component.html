@@ -1,0 +1,28 @@
+<form>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col" sortable="ts" (sort)="onSort($event)">Timestamp</th>
+              <th scope="col" sortable="name" (sort)="onSort($event)">Name</th>
+              <th scope="col" sortable="description" (sort)="onSort($event)">Description</th>
+              <th scope="col" sortable="sourceId" (sort)="onSort($event)">Source id</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let alarm of alarms$ | async">
+              <th scope="row">{{ alarm.id }}</th>
+              <td><ngb-highlight [result]="alarm.ts"></ngb-highlight></td>
+              <td><ngb-highlight [result]="alarm.name"></ngb-highlight></td>
+              <td><ngb-highlight [result]="alarm.description"></ngb-highlight></td>
+              <td><ngb-highlight [result]="alarm.sourceId | number"></ngb-highlight></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between p-2">
+        <ngb-pagination
+          [collectionSize]="(total$ | async)!" [(page)]="service.page" [pageSize]="service.pageSize">
+        </ngb-pagination>
+    </div>
+</form>

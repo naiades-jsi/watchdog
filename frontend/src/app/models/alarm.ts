@@ -1,6 +1,6 @@
 export class Alarm {
-    ID!: number;
-    timestamp!: string;
+    id!: number;
+    ts!: string;
     name!: string;
     sourceId!: number;
     description!: string;

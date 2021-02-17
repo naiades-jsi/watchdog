@@ -13,7 +13,7 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="h4 mb-0 font-weight-bold text-gray-800">{{source.name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{source.name}}</div>
                         </div>
                         <div class="col-auto" *ngIf="source.last_check == source.last_success; then up else down">
                         </div>
@@ -58,7 +58,7 @@
         <div class="col-xl col-lg">
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h5 class="m-0 font-weight-bold text-primary">Up time in the last 31 days</h5>
+                    <h3 class="m-0 font-weight-bold text-primary">Up time in the last 30 days</h3>
                 </div>
                 <div class="card-body">
                     <div class="chart-wrapper">
@@ -92,59 +92,10 @@
         <div class="col-xl col-lg">
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h5 class="m-0 font-weight-bold text-primary">Alerts</h5>
+                    <h3 class="m-0 font-weight-bold text-primary">Alerts</h3>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered" id="dataTable">
-                            <thead>
-                              <tr>
-                                <th scope="col">Alert ID</th>
-                                <th scope="col">Timestamp</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Source ID</th>
-                                <th scope="col">Description</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <th scope="row">1</th>
-                                <td>1.1.2021</td>
-                                <td>Sys err</td>
-                                <td>1 (Kafka)</td>
-                                <td>System error</td>
-                              </tr>
-                              <tr>
-                                <th scope="row">2</th>
-                                <td>2.1.2021</td>
-                                <td>Sys err</td>
-                                <td>1 (Kafka)</td>
-                                <td>System error</td>
-                              </tr>
-                              <tr>
-                                <th scope="row">3</th>
-                                <td>3.1.2021</td>
-                                <td>Sys err</td>
-                                <td>2 (Database)</td>
-                                <td>System error</td>
-                              </tr>
-                              <tr>
-                                <th scope="row">4</th>
-                                <td>4.1.2021</td>
-                                <td>Sys err</td>
-                                <td>2 (Database)</td>
-                                <td>System error</td>
-                              </tr>
-                              <tr>
-                                <th scope="row">5</th>
-                                <td>5.1.2021</td>
-                                <td>Sys err</td>
-                                <td>1 (Kafka)</td>
-                                <td>System error</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                    </div>
+                    <app-alarm-table></app-alarm-table>
                 </div>
             </div>
         </div>

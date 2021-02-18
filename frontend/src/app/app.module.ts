@@ -11,7 +11,7 @@ import { AppRoutingModule } from 'src/app/modules/app-routing/app-routing.module
 import { FrameComponent } from 'src/app/components/frame/frame.component';
 import { DashboardComponent } from 'src/app/components/dashboard/dashboard.component';
 import { AlarmTableComponent } from 'src/app/components/alarm-table/alarm-table.component';
-import { SortableDirective } from 'src/app/services/sortable.directive';
+import { SortableDirective } from 'src/app/directives/sortable.directive';
 
 @NgModule({
     declarations: [

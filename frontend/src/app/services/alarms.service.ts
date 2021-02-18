@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 
 import { Alarm } from 'src/app/models/alarm';
 import { environment } from 'src/environments/environment';
-import { SortColumn, SortDirection } from './sortable.directive';
+import { SortColumn, SortDirection } from 'src/app/directives/sortable.directive';
 
 
 interface SearchResult {
@@ -115,12 +115,12 @@ export class AlarmsService {
         return this._state.page;
     }
 
-    get pageSize(): number {
-        return this._state.pageSize;
-    }
-
     set page(page: number) {
         this._set({page});
+    }
+
+    get pageSize(): number {
+        return this._state.pageSize;
     }
 
     set pageSize(pageSize: number) {

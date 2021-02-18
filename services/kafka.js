@@ -16,11 +16,12 @@ class Kafka {
 
     checkSyntaxSemantic(type, message){
         switch(type){
-            // TODO
-            case '':
-                return;
-            case '':
-                return;
+            case 'noise':
+                return this.checkNoise(message);
+            case 'pressure':
+                return this.checkPressure(message);
+            case 'weather':
+                return this.checkWeather(message);
         }
     }
 
@@ -34,13 +35,47 @@ class Kafka {
         }
     }
 
-    checkNekiNeki(message){
-        // TODO
+    checkNoise(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('time' in rec) && 
+                ('leak_state' in rec) &&
+                ('noise_dB' in rec) && 
+                ('spre_dB' in rec)) {
+                return true;
+            } else {
+                console.log(rec);
+                return false;
+            }
+        }
         return false;
     }
 
-    checkNekiNekiDruzga(message){
-        // TODO
+    checkPressure(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('time' in rec) && ('value' in rec)){
+                return true;
+            } else {
+                console.log(rec);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    checkWeather(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('time' in rec) && ('pressure' in rec) && ('dewPoint' in rec) && 
+                ('humidity' in rec) && ('temperature' in rec) && ('windBearing' in rec) &&
+                ('windspeed' in rec) && ('illuminance' in rec) && ('pressureTendency' in rec)){
+                return true;
+            } else {
+                console.log(rec);
+                return false;
+            }
+        }
         return false;
     }
 

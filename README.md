@@ -8,6 +8,7 @@ Frontend is build using `Angular` and accessible on `http://localhost:5001`. <br
 To start frontend run the following commands:
 ```
 cd frontend
+npm install
 ng serve --open
 ```
 

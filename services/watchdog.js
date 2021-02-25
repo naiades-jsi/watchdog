@@ -13,7 +13,7 @@ class Watchdog {
         const date = new Date();
         console.log("PING! " + date.toLocaleTimeString());
 
-        if (source.type_id === 5) {
+        if (source.type_id === 'socket') {
             const res = await this.testSocket(source);
             if(res){
                 await this.logsRepo.create(source.id, "UP");
@@ -25,7 +25,7 @@ class Watchdog {
                 source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                 this.sourceRepo.update(source);
             }
-        } else if (source.type_id === 2 || source.type_id === 1) {
+        } else if (source.type_id === 'ping' || source.type_id === 'master') {
             const res = await this.testPing(source);
             if(res){
                 await this.logsRepo.create(source.id, "UP");
@@ -37,7 +37,7 @@ class Watchdog {
                 source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                 this.sourceRepo.update(source);
             }
-        } else if(source.type_id === 3) {
+        } else if(source.type_id === 'pingCheckIn') {
             await this.logsRepo.create(source.id, "UP");
             source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
             source.last_success = source.last_check;

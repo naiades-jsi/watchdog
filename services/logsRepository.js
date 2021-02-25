@@ -8,15 +8,15 @@ class LogsRepository {
             CREATE TABLE IF NOT EXISTS logs(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ts DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            source_id INTEGER NOT NULL,
+            sourceId INTEGER NOT NULL,
             status VARCHAR NOT NULL)`;
 
         return this.dao.run(sql);
     }
 
-    create(source_id, status){
-        const sql = `INSERT INTO logs (source_id, status) VALUES (?, ?)`;
-        return this.dao.run(sql, [source_id, status]);
+    create(sourceId, status){
+        const sql = `INSERT INTO logs (sourceId, status) VALUES (?, ?)`;
+        return this.dao.run(sql, [sourceId, status]);
     }
 
     getById(id){
@@ -30,25 +30,30 @@ class LogsRepository {
         return this.dao.all(sql);
     }
 
-    getAllBySourceId(id){
+    getAllBySourceId(sourceId){
         const sql = `SELECT * FROM logs
-                    WHERE source_id = ?`;
-        return this.dao.all(sql, [id]);
+                    WHERE sourceId = ?`;
+        return this.dao.all(sql, [sourceId]);
     }
 
     update(log){
-        const { id, ts, source_id, status } = log;
+        const { id, ts, sourceId, status } = log;
         const sql = `UPDATE logs
             SET ts = ?, 
-            source_id = ?, 
+            sourceId = ?, 
             status = ? 
             WHERE id = ?`;
-        return this.dao.run(sql, [ts, source_id, status, id]);
+        return this.dao.run(sql, [ts, sourceId, status, id]);
     }
 
     delete(id){
         const sql = `DELETE FROM logs WHERE id = ?`;
         return this.dao.run(sql, [id]);
+    }
+
+    deleteAll(){
+        const sql = `DELETE FROM logs`;
+        return this.dao.run(sql);
     }
 
     deleteByTimestamp(timestamp){

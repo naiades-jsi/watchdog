@@ -16,34 +16,15 @@ const TypeRepository = require('./services/typeRepository');
 const LogsRepository = require('./services/logsRepository');
 const Watchdog = require('./services/watchdog');
 
-const {sources} = require('./schema/testSources.js');
-const {types} = require('./schema/testTypes');
-
 const EmailService = require('./services/emailService');
 const emailService = new EmailService();
 
 const dao = new AppDao();
 const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
-const typeRepo = new TypeRepository(dao);
 const logsRepo = new LogsRepository(dao);
 const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo);
-
-/**
- * DATABASE initialization
- */
-// sourceRepo.createTable()
-//     .then(() => alarmsRepo.createTable())
-//     .then(() => typeRepo.createTable())
-//     .then(() => logsRepo.createTable());
-
-// sources.forEach(el => {
-//     sourceRepo.create(el.name, el.type_id, el.config, el.frequency);
-// });
-
-// types.forEach(el => {
-//     typeRepo.create(el.name);
-// });
+const 
 
 /**
  * SERVER configuration
@@ -66,6 +47,48 @@ app.get('/', (req, res) => {
 
 app.get('/ping', (req, res) => {
     res.status(200).send('Pong!');
+});
+
+app.get('/db/createSources', (req, res) => {
+    sourceRepo.createTable()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/createAlarms', (req, res) => {
+    alarmsRepo.createTable()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/createLogs', (req, res) => {
+    logsRepo.createTable()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/cleanSources', (req, res) => {
+    sourceRepo.deleteAll()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/cleanAlarms', (req, res) => {
+    alarmsRepo.deleteAll()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/cleanLogs', (req, res) => {
+    logsRepo.deleteAll()
+        .then((response) => {
+            res.send(response);
+        });
 });
 
 /**
@@ -124,30 +147,6 @@ app.post('/alarm', (req, res) => {
 });
 
 /**
- * TYPE
- */
-app.get('/types', (req, res) => {
-    typeRepo.getAll()
-        .then((types) => {
-            res.send(types);
-        });
-});
-
-app.get('/type/:id', (req, res) => {
-    typeRepo.getById(req.params.id)
-        .then((type) => {
-            res.send(type);
-        });
-});
-
-app.post('/type', (req, res) => {
-    typeRepo.create(req.body.name)
-        .then((response) => {
-            res.send(response);
-        });
-});
-
-/**
  * LOGS
  */
 app.get('/logs', (req, res) => {
@@ -190,11 +189,8 @@ const job = schedule.scheduleJob(cron_schedule_ping, async () => {
  * CRON SCHEDULER for deleting data older than 1 month
  */
 const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
-    // FOR NOW IT DELETES OLD DATA EVERY MINUTE
     const date = new Date();
-    
-    const newDate = new Date(date - 20000).add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-    logsRepo.deleteByTimestamp(newDate);
+    logsRepo.deleteByTimestamp(date);
 });
 
 /**

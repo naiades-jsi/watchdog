@@ -9,17 +9,17 @@ class SourceRepository {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ts DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
             name VARCHAR(64) NOT NULL,
-            type_id INTEGER NOT NULL,
+            typeId VARCHAR(64) NOT NULL,
             config TEXT NOT NULL,
-            last_check DATETIME,
+            lastCheck DATETIME,
             frequency INTEGER NOT NULL,
-            last_success DATETIME);`
+            lastSuccess DATETIME);`
         return this.dao.run(sql);
     }
 
-    create(name, type_id, config, frequency){
-        const sql = `INSERT INTO source (name, type_id, config, frequency) VALUES (?, ?, ?, ?)`;
-        return this.dao.run(sql, [name, type_id, config, frequency]);
+    create(name, typeId, config, frequency){
+        const sql = `INSERT INTO source (name, typeId, config, frequency) VALUES (?, ?, ?, ?)`;
+        return this.dao.run(sql, [name, typeId, config, frequency]);
     }
 
     getById(id){
@@ -35,34 +35,39 @@ class SourceRepository {
 
     getNextSource(){
         const sql = `SELECT * FROM source 
-                    WHERE type_id != 4
+                    WHERE typeId != 'kafkaTopicLastTs' 
                     ORDER BY last_check ASC LIMIT 1`;
         return this.dao.get(sql);
     }
 
     getKafkaSources(){
         const sql = `SELECT * FROM source 
-                    WHERE type_id = 4`;
+                    WHERE typeId = 'kafkaTopicLastTs'`;
         return this.dao.all(sql);
     }
 
     update(source){
-        const { id, ts, name, type_id, config, last_check, frequency, last_success } = source;
+        const { id, ts, name, typeId, config, lastCheck, frequency, lastSuccess } = source;
         const sql = `UPDATE source 
             SET ts = ?,
             name = ?,
-            type_id = ?,
+            typeId = ?,
             config = ?,
-            last_check = ?,
+            lastCheck = ?,
             frequency = ?,
-            last_success = ?
+            lastSuccess = ?
             WHERE id = ?`;
-        return this.dao.run(sql, [ts, name, type_id, config, last_check, frequency, last_success, id]);
+        return this.dao.run(sql, [ts, name, typeId, config, lastCheck, frequency, lastSuccess, id]);
     }
 
     delete(id){
         const sql = `DELETE FROM source WHERE id = ?`;
         return this.dao.run(sql, [id]);
+    }
+
+    deleteAll(){
+        const sql = `DELETE FROM source`;
+        return this.dao.run(sql);
     }
 }
 

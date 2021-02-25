@@ -9,14 +9,14 @@ class AlarmRepository {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ts DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
             name VARCHAR(64) NOT NULL,
-            source_id INTEGER NOT NULL,
+            sourceId INTEGER NOT NULL,
             description TEXT NOT NULL)`;
         return this.dao.run(sql);
     }
 
-    create(name, source_id, description){
-        const sql = `INSERT INTO alarms (name, source_id, description) VALUES (?, ?, ?)`;
-        return this.dao.run(sql, [name, source_id, description]);
+    create(name, sourceId, description){
+        const sql = `INSERT INTO alarms (name, sourceId, description) VALUES (?, ?, ?)`;
+        return this.dao.run(sql, [name, sourceId, description]);
     }
 
     getById(id){
@@ -31,19 +31,24 @@ class AlarmRepository {
     }
 
     update(alarm){
-        const { id, ts, name, source_id, description } = alarm;
+        const { id, ts, name, sourceId, description } = alarm;
         const sql = `UPDATE alarms 
             SET ts = ?,
             name = ?,
-            source_id = ?,
+            sourceId = ?,
             description = ?
             WHERE id = ?`;
-        return this.dao.run(sql, [ts, name, source_id, description, id]);
+        return this.dao.run(sql, [ts, name, sourceId, description, id]);
     }
 
     delete(id){
         const sql = `DELETE FROM alarms WHERE id = ?`;
         return this.dao.run(sql, [id]);
+    }
+
+    deleteAll(){
+        const sql = `DELETE FROM alarms`;
+        return this.dao.run(sql);
     }
 }
 

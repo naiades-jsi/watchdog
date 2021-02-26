@@ -12,7 +12,6 @@ dotenv.config();
 const AppDao = require('./services/dao');
 const SourceRepository = require('./services/sourceRepository');
 const AlarmsRepository = require('./services/alarmRepository');
-const TypeRepository = require('./services/typeRepository');
 const LogsRepository = require('./services/logsRepository');
 const Watchdog = require('./services/watchdog');
 
@@ -24,13 +23,12 @@ const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
 const logsRepo = new LogsRepository(dao);
 const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo);
-const 
 
 /**
  * SERVER configuration
  */
 const cron_schedule_ping = '*/5 * * * * *';
-const cron_schedule_clean = '0 0 0 * * *'
+const cron_schedule_clean = '0 0 0 * * *';
 const app = express();
 app.listen(process.env.HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%", process.env.HTTP_PORT))
@@ -116,7 +114,7 @@ app.get('/source/:id', (req, res) => {
 });
 
 app.post('/source', (req, res) => {
-    sourceRepo.create(req.body.name, req.body.type_id, req.body.config, req.body.frequency)
+    sourceRepo.create(req.body.name, req.body.typeId, req.body.config)
         .then((response) => {
             res.send(response);
         });
@@ -140,7 +138,7 @@ app.get('/alarm/:id', (req, res) => {
 });
 
 app.post('/alarm', (req, res) => {
-    alarmsRepo.create(req.body.name, req.body.source_id, req.body.description)
+    alarmsRepo.create(req.body.name, req.body.sourceId, req.body.description)
         .then((response) => {
             res.send(response);
         });
@@ -188,10 +186,10 @@ const job = schedule.scheduleJob(cron_schedule_ping, async () => {
 /**
  * CRON SCHEDULER for deleting data older than 1 month
  */
-const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
-    const date = new Date();
-    logsRepo.deleteByTimestamp(date);
-});
+// const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
+//     const date = new Date().moveToDayOfWeek().addDays(-30).at("01:00:00");
+//     logsRepo.deleteByTimestamp(date);
+// });
 
 /**
  * START Kafka

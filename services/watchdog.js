@@ -13,34 +13,34 @@ class Watchdog {
         const date = new Date();
         console.log("PING! " + date.toLocaleTimeString());
 
-        if (source.type_id === 'socket') {
+        if (source.typeId === 'socket') {
             const res = await this.testSocket(source);
             if(res){
                 await this.logsRepo.create(source.id, "UP");
-                source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-                source.last_success = source.last_check;
+                source.lastClastCheckheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                source.lastSuccess = source.lastCheck;
                 this.sourceRepo.update(source);
             } else {
                 this.logsRepo.create(source.id, "DOWN");
-                source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                 this.sourceRepo.update(source);
             }
-        } else if (source.type_id === 'ping' || source.type_id === 'master') {
+        } else if (source.typeId === 'ping' || source.typeId === 'master') {
             const res = await this.testPing(source);
             if(res){
                 await this.logsRepo.create(source.id, "UP");
-                source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-                source.last_success = source.last_check;
+                source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                source.lastSuccess = source.lastCheck;
                 this.sourceRepo.update(source);
             } else {
                 this.logsRepo.create(source.id, "DOWN");
-                source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                 this.sourceRepo.update(source);
             }
-        } else if(source.type_id === 'pingCheckIn') {
+        } else if(source.typeId === 'pingCheckIn') {
             await this.logsRepo.create(source.id, "UP");
-            source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-            source.last_success = source.last_check;
+            source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+            source.lastSuccess = source.lastCheck;
             this.sourceRepo.update(source);
         }
     }

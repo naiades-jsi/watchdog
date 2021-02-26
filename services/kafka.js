@@ -108,14 +108,14 @@ class Kafka {
                         console.log('Updating Kafka source: ', source.id);
 
                         await this.logsRepo(source.id, "UP");
-                        source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-                        source.last_success = source.last_check;
+                        source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                        source.lastSuccess = source.lastCheck;
                         this.sourceRepo.update(source);
                     } else {
                         console.log('Invalid data on Kafka source ', source.id);
 
                         await this.logsRepo.create(source.id, "DOWN");
-                        source.last_check = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                        source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                         this.sourceRepo.update(source);
                         this.alarmRepo.create('Invalid data', source.id, 'Non-JSON or misformatted message on topic');
                     }

@@ -12,14 +12,13 @@ class SourceRepository {
             typeId VARCHAR(64) NOT NULL,
             config TEXT NOT NULL,
             lastCheck DATETIME,
-            frequency INTEGER NOT NULL,
             lastSuccess DATETIME);`
         return this.dao.run(sql);
     }
 
-    create(name, typeId, config, frequency){
-        const sql = `INSERT INTO source (name, typeId, config, frequency) VALUES (?, ?, ?, ?)`;
-        return this.dao.run(sql, [name, typeId, config, frequency]);
+    create(name, typeId, config){
+        const sql = `INSERT INTO source (name, typeId, config) VALUES (?, ?, ?)`;
+        return this.dao.run(sql, [name, typeId, config]);
     }
 
     getById(id){
@@ -36,7 +35,7 @@ class SourceRepository {
     getNextSource(){
         const sql = `SELECT * FROM source 
                     WHERE typeId != 'kafkaTopicLastTs' 
-                    ORDER BY last_check ASC LIMIT 1`;
+                    ORDER BY lastCheck ASC LIMIT 1`;
         return this.dao.get(sql);
     }
 
@@ -47,17 +46,16 @@ class SourceRepository {
     }
 
     update(source){
-        const { id, ts, name, typeId, config, lastCheck, frequency, lastSuccess } = source;
+        const { id, ts, name, typeId, config, lastCheck, lastSuccess } = source;
         const sql = `UPDATE source 
             SET ts = ?,
             name = ?,
             typeId = ?,
             config = ?,
             lastCheck = ?,
-            frequency = ?,
             lastSuccess = ?
             WHERE id = ?`;
-        return this.dao.run(sql, [ts, name, typeId, config, lastCheck, frequency, lastSuccess, id]);
+        return this.dao.run(sql, [ts, name, typeId, config, lastCheck, lastSuccess, id]);
     }
 
     delete(id){

@@ -34,7 +34,7 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-wrapper" *ngFor="let source of chartSources; let i = index">
-                        <hr class="sidebar-divider my-0" *ngIf="i%2 == 1">
+                        <hr class="sidebar-divider my-0" *ngIf="i != 0">
                         <strong>{{source.name}} {{overallUpPercentage[i]}}%</strong>
                         <div class="chart-area">
                             <canvas class="chart-canvas" id="chart{{source.id}}"></canvas>

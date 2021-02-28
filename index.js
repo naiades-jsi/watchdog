@@ -99,6 +99,13 @@ app.get('/sources', (req, res) => {
         });
 });
 
+app.get('/sourcesWithoutTopics', (req, res) => {
+    sourceRepo.getSourcesWithoutKafkaTopics()
+        .then((sources) => {
+            res.send(sources);
+        })
+});
+
 app.get('/sourcesKafka', (req, res) => {
     sourceRepo.getKafkaSources()
         .then((kafkaSources) => {
@@ -181,7 +188,6 @@ app.post('/log', (req, res) => {
 const job = schedule.scheduleJob(cron_schedule_ping, async () => {
     let availableSources = await sourceRepo.getSourcesWithoutKafkaTopics();
     for(let i = 0; i < availableSources.length; i++){
-        console.log(availableSources[i]);
         watchdog.checkSource(availableSources[i]);
     }
 });

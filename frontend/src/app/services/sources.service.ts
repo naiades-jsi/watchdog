@@ -32,6 +32,15 @@ export class SourcesService {
         return res;
     }
 
+    public getSourcesWithoutKafkaTopics(): Promise<Source[]> {
+        const url = `${this.apiUrl}/sourcesWithoutTopics`;
+        const res = this.http
+                        .get(url)
+                        .toPromise()
+                        .catch(this.handleError);
+        return res;
+    }
+
     public getKafkaSources(): Promise<Source[]> {
         const url = `${this.apiUrl}/sourcesKafka`;
         const res = this.http

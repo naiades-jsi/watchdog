@@ -146,7 +146,6 @@ export class AlarmsService {
         await this.getAllAlarms()
             .then((res) => {
                 this.alarmsList = res;
-                console.log(res);
             });
 
         // 1. sort

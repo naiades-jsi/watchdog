@@ -1,6 +1,6 @@
 export class Log {
-    ID!: number;
-    timestamp!: string;
+    id!: number;
+    ts!: string;
     sourceId!: number;
     status!: string;
 }

@@ -33,24 +33,11 @@
                     <h3 class="m-0 font-weight-bold text-primary">Up time in the last 30 days</h3>
                 </div>
                 <div class="card-body">
-                    <div class="chart-wrapper">
-                    Kafka 93%
+                    <div class="chart-wrapper" *ngFor="let source of chartSources; let i = index">
+                        <hr class="sidebar-divider my-0" *ngIf="i%2 == 1">
+                        <strong>{{source.name}} {{overallUpPercentage[i]}}%</strong>
                         <div class="chart-area">
-                            <canvas class="chart-canvas" id="chartKafka"></canvas>
-                        </div>
-                    </div>
-                    <hr class="sidebar-divider my-0">
-                    <div class="chart-wrapper" style="margin-top: 15px;">
-                    Another Kafka 100%
-                        <div class="chart-area">
-                            <canvas class="chart-canvas" id="chartAnotherKafka"></canvas>
-                        </div>
-                    </div>
-                    <hr class="sidebar-divider my-0">
-                    <div class="chart-wrapper" style="margin-top: 15px;">
-                    Database 13.53%
-                        <div class="chart-area">
-                            <canvas class="chart-canvas" id="chartDatabase"></canvas>
+                            <canvas class="chart-canvas" id="chart{{source.id}}"></canvas>
                         </div>
                     </div>
                 </div>

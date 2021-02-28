@@ -1,5 +1,5 @@
 export class Source {
-    ID!: number;
+    id!: number;
     ts!: string;
     name!: string;
     typeId!: string;

@@ -1,6 +1,7 @@
 class AlarmRepository {
     constructor(dao){
         this.dao = dao;
+        this.createTable();
     }
 
     createTable(){

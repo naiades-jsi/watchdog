@@ -27,7 +27,7 @@ const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo);
 /**
  * SERVER configuration
  */
-const cron_schedule_ping = '*/5 * * * * *';
+const cron_schedule_ping = '*/30 * * * * *';
 const cron_schedule_clean = '0 0 0 * * *';
 const app = express();
 app.listen(process.env.HTTP_PORT, () => {
@@ -179,17 +179,20 @@ app.post('/log', (req, res) => {
  * CRON SCHEDULER for checking if system is working
  */
 const job = schedule.scheduleJob(cron_schedule_ping, async () => {
-    let nextSource = await sourceRepo.getNextSource();
-    watchdog.checkSource(nextSource);
+    let availableSources = await sourceRepo.getSourcesWithoutKafkaTopics();
+    for(let i = 0; i < availableSources.length; i++){
+        console.log(availableSources[i]);
+        watchdog.checkSource(availableSources[i]);
+    }
 });
 
 /**
  * CRON SCHEDULER for deleting data older than 1 month
  */
-// const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
-//     const date = new Date().moveToDayOfWeek().addDays(-30).at("01:00:00");
-//     logsRepo.deleteByTimestamp(date);
-// });
+const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
+    const date = new Date().moveToDayOfWeek().addDays(-30).at("01:00:00");
+    logsRepo.deleteByTimestamp(date);
+});
 
 /**
  * START Kafka

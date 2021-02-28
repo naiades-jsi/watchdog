@@ -1,6 +1,7 @@
 class SourceRepository {
     constructor(dao){
         this.dao = dao;
+        this.createTable();
     }
 
     createTable(){
@@ -37,6 +38,12 @@ class SourceRepository {
                     WHERE typeId != 'kafkaTopicLastTs' 
                     ORDER BY lastCheck ASC LIMIT 1`;
         return this.dao.get(sql);
+    }
+
+    getSourcesWithoutKafkaTopics(){
+        const sql = `SELECT * FROM source 
+                    WHERE typeId != 'kafkaTopicLastTs'`;
+        return this.dao.all(sql);
     }
 
     getKafkaSources(){

@@ -23,13 +23,6 @@ By default Watchdog server is active on `http://localhost:5002`.
 
 * `POST /source` - adds a new source to the database, source is send in the request body.
 
-### Types:
-* `GET /types` - returns a list of all source types in JSON format.
-
-* `GET /type/:id` - returns a source type with requested `id`.
-
-* `POST /type` - adds a new source type to the database, source type is send in the request body.
-
 ### Logs:
 * `GET /logs` - returns a list of logs from all sources in JSON format for the last 30 days.
 

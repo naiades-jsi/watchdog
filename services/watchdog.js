@@ -1,81 +1,92 @@
-const WatchdogStorage = require('./watchdog_storage_mariadb');
+require('datejs');
 const isReachable = require('is-reachable');
 const KafkaNode = require('./kafka');
 
 class Watchdog {
-
-    constructor() {
-        this.storage = new WatchdogStorage();
+    constructor(sourceRepository, logsRepository, alarmsRepository){
+        this.sourceRepo = sourceRepository;
+        this.logsRepo = logsRepository;
+        this.alarmsRepo = alarmsRepository;
     }
 
-    async selectNextSource() {
-        const source = await this.storage.getNextSource();
-        return source;
-    }
+    async checkSource(source){
+        const date = new Date();
+        console.log("PING! " + date.toLocaleTimeString());
 
-    async testSource(source) {
-        let result = false;
-        if (source.ty_name === 'socket') {
-            result = await this.testSocket(source);
-        } else if (source.ty_name === 'ping') {
-            result = await this.testPing(source);
+        if (source.typeId === 'socket') {
+            const res = await this.testSocket(source);
+            if(res){
+                await this.logsRepo.create(source.id, "UP");
+                source.lastClastCheckheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                source.lastSuccess = source.lastCheck;
+                this.sourceRepo.update(source);
+            } else {
+                this.logsRepo.create(source.id, "DOWN");
+                source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                this.sourceRepo.update(source);
+            }
+        } else if (source.typeId === 'ping' || source.typeId === 'master') {
+            const res = await this.testPing(source);
+            if(res){
+                await this.logsRepo.create(source.id, "UP");
+                source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                source.lastSuccess = source.lastCheck;
+                this.sourceRepo.update(source);
+            } else {
+                this.logsRepo.create(source.id, "DOWN");
+                source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                this.sourceRepo.update(source);
+            }
+        } else if(source.typeId === 'pingCheckIn') {
+            await this.logsRepo.create(source.id, "UP");
+            source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+            source.lastSuccess = source.lastCheck;
+            this.sourceRepo.update(source);
         }
-        // update source last timestamp
-        await this.storage.updateSource(source.id);
-        if (result) await this.storage.updatePing(source.id);
-        return result;
     }
 
     async testSocket(source) {
-        const config = JSON.parse(source.so_config);
-        const target = config.target;
-        const port = config.port;
+        const conf = JSON.parse(source.config);
+        const target = conf.target;
+        const port = conf.port;
 
         return await isReachable(target + ":" + port);
     }
-
+        
     async testPing(source) {
-        const config = JSON.parse(source.so_config);
-        const target = config.target;
-
+        const conf = JSON.parse(source.config);
+        const target = conf.target;
+        
         return await isReachable(target);
     }
 
-    updatePing(id, secret) {
-        return this.storage.updatePingSecret(id, secret);
-    }
-
-    updateMasterPing() {
-        this.storage.updateMasterPing();
-    }
-
-    async startTestKafka() {
-        const topics = await this.storage.getKafkaSources();
+    async testKafkaTopic(){
+        const kafkaSources = await this.sourceRepo.getKafkaSources();
         this.servers = [];
-        // generate topics by server
-        topics.forEach((topic, i) => {
-            const config = JSON.parse(topic.so_config);
-            const idx = this.servers.findIndex((el) => { return el.kafka === config.target});
-            if (idx >= 0) {
-                this.servers[idx].topics.push(config.topic);
-                this.servers[idx].types.push(config.type);
-                this.servers[idx].sourceids.push(topic.id);
+
+        kafkaSources.forEach((topic, idx) => {
+            const config = JSON.parse(topic.config);
+            const index = this.servers.findIndex((el) => { return el.kafka === config.target});
+            if(index >= 0){
+                this.servers[index].topics.push(config.topic);
+                this.servers[index].types.push(config.type);
+                this.servers[index].sources.push(topic);
             } else {
                 this.servers.push({
                     kafka: config.target,
-                    topics: [ config.topic ],
-                    types: [ config.type ],
-                    sourceids: [ topic.id ]
+                    topics: [config.topic],
+                    types: [config.type],
+                    sources: [topic]
                 });
             }
         });
+        console.log(this.servers);
 
         // connect to servers
-        this.servers.forEach((server, i) => {
-            let kafka = new KafkaNode(server.kafka, server.topics, server.types, this.storage, server.sourceids);
-            this.servers[i].node = kafka;
+        this.servers.forEach((server, idx) => {
+            let kafka = new KafkaNode(server.kafka, server.topics, server.types, server.sources, this.sourceRepo, this.alarmsRepo, this.logsRepo);
+            this.servers[idx].node = kafka;
         });
-
     }
 }
 

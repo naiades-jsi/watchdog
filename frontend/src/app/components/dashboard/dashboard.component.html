@@ -1,0 +1,69 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Status Kafka Card -->
+        <div class="col-xl-3 col-md-6 mb-4" *ngFor="let source of sources; let i = index">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{source.name}}</div>
+                        </div>
+                        <div class="col-auto" *ngIf="source.lastCheck == source.lastSuccess; then up else down">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Area Chart -->
+        <div class="col-xl col-lg">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h3 class="m-0 font-weight-bold text-primary">Up time in the last 30 days</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-wrapper" *ngFor="let source of chartSources; let i = index">
+                        <hr class="sidebar-divider my-0" *ngIf="i != 0">
+                        <strong>{{source.name}} {{overallUpPercentage[i]}}%</strong>
+                        <div class="chart-area">
+                            <canvas class="chart-canvas" id="chart{{source.id}}"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content row -->
+    <div class="row">
+        <!-- Table view -->
+        <div class="col-xl col-lg">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h3 class="m-0 font-weight-bold text-primary">Alerts</h3>
+                </div>
+                <div class="card-body">
+                    <app-alarm-table></app-alarm-table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Dynamic components for status -->
+<ng-template #up>
+    <img src="../../../assets/images/green_icon.ico" class="dot">UP
+</ng-template>
+<ng-template #down>
+    <img src="../../../assets/images/red_icon.ico" class="dot">DOWN
+</ng-template>

@@ -1,95 +1,206 @@
-// watchdog
+/**
+ * WATCHDOG server
+ */
+require('datejs');
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const schedule = require('node-schedule');
+const dotenv = require('dotenv');
+dotenv.config();
 
-// includes
-// express related includes
-let express = require('express');
-let bodyParser = require('body-parser');
-let cors = require('cors');
-let fs = require('fs');
-let schedule = require('node-schedule');
+const AppDao = require('./services/dao');
+const SourceRepository = require('./services/sourceRepository');
+const AlarmsRepository = require('./services/alarmRepository');
+const LogsRepository = require('./services/logsRepository');
+const Watchdog = require('./services/watchdog');
 
-// service
-let WatchDog = require('./services/watchdog');
-let w = new WatchDog();
+const EmailService = require('./services/emailService');
+const emailService = new EmailService();
 
-// parameters
-const port = 3001;
-const cron_schedule = '*/3 * * * * *'; // every 5 seconds
+const dao = new AppDao();
+const sourceRepo = new SourceRepository(dao);
+const alarmsRepo = new AlarmsRepository(dao);
+const logsRepo = new LogsRepository(dao);
+const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo);
 
-// variables
-let count = 0; // counter for repetitions with no action
-
-// new express app
-let app = express();
-app.use(cors({origin: 'http://localhost:8000'}));
+/**
+ * SERVER configuration
+ */
+const cron_schedule_ping = '*/30 * * * * *';
+const cron_schedule_clean = '0 0 0 * * *';
+const app = express();
+app.listen(process.env.HTTP_PORT, () => {
+    console.log("Server running on port %PORT%".replace("%PORT%", process.env.HTTP_PORT))
+});
+app.use(cors({origin: process.env.FRONT_URL}));
 app.use(bodyParser.json({limit: '50mb'}));
 
-// prepare routes
+/**
+ * ENDPOINTS
+ */
 app.get('/', (req, res) => {
     res.send('Watchdog');
-})
-
-// prepare routes
-app.get('/ping', async (req, res) => {
-    const result = await w.updatePing(req.query.id, req.query.secret);
-    if (count) console.log();
-    if (result) console.log("Source " + req.query.id + " checked in!");
-    else console.log("Wrong credentials for source " + req.query.id + "!");
-    count = 0;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(result));
-})
-
-// prepare routes
-app.get('/status', async (req, res) => {
-    const result = await w.storage.getSources();
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(result));
-})
-
-// prepare routes
-app.get('/alarms', async (req, res) => {
-    let n = 10;
-    if (req.query.n) n = parseInt(req.query.n);
-    const result = await w.storage.getAlarms(n);
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(result));
-})
-
-// start server
-let server = app.listen(port, 'localhost', () => {
-    let host = server.address().address;
-    let port = server.address().port;
-
-    console.log("Watchdog listening at http://%s:%s", host, port);
-})
-
-// start scheduler
-var j = schedule.scheduleJob(cron_schedule, async () => {
-    // console.log('Invoking watchdog process');
-    w.updateMasterPing();
-
-    // select the source
-    let source = await w.selectNextSource();
-
-    // test the source
-    // instead of if while can be used and the line
-    // with updating source uncommented; not recommended
-    // as the system is rather small and pings will be
-    // distributed after first iteration
-    if (source.diffts > 0) {
-        if (count) console.log();
-        console.log("Checking: ", source.so_name);
-        await w.testSource(source);
-        count = 0;
-        // source = await w.selectNextSource();
-    } else {
-        process.stdout.write("*");
-        count++;
-    };
-
-    // write alarms if needed
 });
 
-// start kafka
-w.startTestKafka();
+app.get('/ping', (req, res) => {
+    res.status(200).send('Pong!');
+});
+
+app.get('/db/createSources', (req, res) => {
+    sourceRepo.createTable()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/createAlarms', (req, res) => {
+    alarmsRepo.createTable()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/createLogs', (req, res) => {
+    logsRepo.createTable()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/cleanSources', (req, res) => {
+    sourceRepo.deleteAll()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/cleanAlarms', (req, res) => {
+    alarmsRepo.deleteAll()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+app.get('/db/cleanLogs', (req, res) => {
+    logsRepo.deleteAll()
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+/**
+ * SOURCES
+ */
+app.get('/sources', (req, res) => {
+    sourceRepo.getAll()
+        .then((sources) => {
+            res.send(sources);
+        });
+});
+
+app.get('/sourcesWithoutTopics', (req, res) => {
+    sourceRepo.getSourcesWithoutKafkaTopics()
+        .then((sources) => {
+            res.send(sources);
+        })
+});
+
+app.get('/sourcesKafka', (req, res) => {
+    sourceRepo.getKafkaSources()
+        .then((kafkaSources) => {
+            res.send(kafkaSources);
+        });
+});
+
+app.get('/source/:id', (req, res) => {
+    sourceRepo.getById(req.params.id)
+        .then((source) => {
+            res.send(source);
+        });
+});
+
+app.post('/source', (req, res) => {
+    sourceRepo.create(req.body.name, req.body.typeId, req.body.config)
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+/**
+ * ALARMS
+ */
+app.get('/alarms', (req, res) => {
+    alarmsRepo.getAll()
+        .then((alarms) => {
+            res.send(alarms);
+        });
+});
+
+app.get('/alarm/:id', (req, res) => {
+    alarmsRepo.getById(req.params.id)
+        .then((alarm) => {
+            res.send(alarm);
+        });
+});
+
+app.post('/alarm', (req, res) => {
+    alarmsRepo.create(req.body.name, req.body.sourceId, req.body.description)
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+/**
+ * LOGS
+ */
+app.get('/logs', (req, res) => {
+    logsRepo.getAll()
+        .then((types) => {
+            res.send(types);
+        });
+});
+
+app.get('/logs/source/:id', (req, res) => {
+    logsRepo.getAllBySourceId(req.params.id)
+        .then((logs) => {
+            res.send(logs);
+        });
+});
+
+app.get('/log/:id', (req, res) => {
+    logsRepo.getById(req.params.id)
+        .then((type) => {
+            res.send(type);
+        });
+});
+
+app.post('/log', (req, res) => {
+    logsRepo.create(req.body.name)
+        .then((response) => {
+            res.send(response);
+        });
+});
+
+/**
+ * CRON SCHEDULER for checking if system is working
+ */
+const job = schedule.scheduleJob(cron_schedule_ping, async () => {
+    let availableSources = await sourceRepo.getSourcesWithoutKafkaTopics();
+    for(let i = 0; i < availableSources.length; i++){
+        watchdog.checkSource(availableSources[i]);
+    }
+});
+
+/**
+ * CRON SCHEDULER for deleting data older than 1 month
+ */
+const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
+    const date = new Date().moveToDayOfWeek().addDays(-30).at("01:00:00");
+    logsRepo.deleteByTimestamp(date);
+});
+
+/**
+ * START Kafka
+ */
+// watchdog.testKafkaTopic();

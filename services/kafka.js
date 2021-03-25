@@ -1,7 +1,7 @@
 const kafka = require('kafka-node');
 
 class Kafka {
-    constructor(host, topics, types, sources, sourceRepo, alarmRepo, logsRepo) {
+    constructor(host, topics, types, sources, sourceRepo, alarmRepo, logsRepo, emailService) {
         this.threshold = 3000; // time ms to update with new measurement
         this.updateTs = Array(sources.length).fill(0);
         this.kafkaHost = host;
@@ -11,6 +11,9 @@ class Kafka {
         this.sourceRepo = sourceRepo;
         this.alarmRepo = alarmRepo;
         this.logsRepo = logsRepo;
+        this.emailService = emailService;
+
+        this.counter = 0;
         this.connect(host, topics);
     }
 
@@ -20,8 +23,18 @@ class Kafka {
                 return this.checkNoise(message);
             case 'pressure':
                 return this.checkPressure(message);
-            case 'weather':
-                return this.checkWeather(message);
+            case 'weatherObserved':
+                return this.checkWeatherObserved(message);
+            case 'flow':
+                return this.checkFlow(message);
+            case 'volume':
+                return this.checkVolume(message);
+            case 'level':
+                return this.checkLevel(message);
+            case 'conductivity':
+                return this.checkConductivity(message);
+            case 'debitmeter':
+                return this.checkDebitmeter(message)
         }
     }
 
@@ -38,10 +51,8 @@ class Kafka {
     checkNoise(message){
         if(this.checkJson(message)){
             const rec = JSON.parse(message);
-            if(('time' in rec) && 
-                ('leak_state' in rec) &&
-                ('noise_dB' in rec) && 
-                ('spre_dB' in rec)) {
+            if(('time' in rec) && ('leak_state' in rec) &&
+                ('noise_db' in rec) && ('spre_db' in rec)) {
                 return true;
             } else {
                 console.log(rec);
@@ -64,15 +75,78 @@ class Kafka {
         return false;
     }
 
-    checkWeather(message){
+    checkWeatherObserved(message){
         if(this.checkJson(message)){
             const rec = JSON.parse(message);
-            if(('time' in rec) && ('pressure' in rec) && ('dewPoint' in rec) && 
-                ('humidity' in rec) && ('temperature' in rec) && ('windBearing' in rec) &&
-                ('windspeed' in rec) && ('illuminance' in rec) && ('pressureTendency' in rec)){
+            if(('stampm' in rec) && ('pressure' in rec) && ('dew_point' in rec) && 
+                ('precipitation' in rec) && ('humidity' in rec) && ('temperature' in rec) &&
+                ('wind_bearing' in rec) && ('wind_speed' in rec) && ('illuminance' in rec) &&
+                ('pressure_tendency' in rec)){
                 return true;
             } else {
                 console.log(rec);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    checkFlow(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('time' in rec) && ('value' in rec)){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    checkVolume(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('time' in rec) && ('value' in rec)){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    checkLevel(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('time' in rec) && ('value' in rec)){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    checkConductivity(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('time' in rec) && ('value' in rec)){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    checkDebitmeter(message){
+        if(this.checkJson(message)){
+            const rec = JSON.parse(message);
+            if(('flow_rate_value' in rec) && ('totalizer1' in rec) && ('totalizer2' in rec) &&
+            ('consumer_totalizer' in rec) && ('analog_input1' in rec) && ('analog_input2' in rec) &&
+            ('batery_capacity' in rec) && ('alarms_in_decimal' in rec)){
+                return true;
+            } else {
                 return false;
             }
         }
@@ -118,6 +192,14 @@ class Kafka {
                         source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                         this.sourceRepo.update(source);
                         this.alarmRepo.create('Invalid data', source.id, 'Non-JSON or misformatted message on topic');
+                        
+                        if(this.counter >= 5){
+                            this.emailService.sendEmail("Kafka topic error!", 
+                            "Invalid data on kafka source " + source.id + "!\nData received: " + msg);
+
+                            this.counter = 0;
+                        }
+                        this.counter++;
                     }
                 }
             } catch(e){

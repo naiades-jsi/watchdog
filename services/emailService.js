@@ -1,20 +1,29 @@
-const sendmail = require('sendmail')();
+const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 dotenv.config();
 
 class EmailService {
-    constructort(){}
+    constructor(){
+        this.transporter = nodemailer.createTransport({
+            host: 'mail.ijs.si',
+            port: 25
+        });
+    }
 
     sendEmail(subject, textContent){
-        sendmail({
+        const msg = {
             from: process.env.SENDER_EMAIL,
             to: process.env.RECEIVER_EMAIL,
-            replyTo: process.env.SENDER_EMAIL,
             subject: subject,
-            text: textContent
-        }, (err, reply) => {
-            console.log(err && err.stack);
-            console.log(reply);
+            text: textContent 
+        };
+
+        this.transporter.sendMail(msg, (err, info) => {
+            if(err){
+                console.log("ERROR! " + err);
+            } else {
+                console.log("INFO " + info);
+            }
         });
     }
 }

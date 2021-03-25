@@ -44,7 +44,7 @@ export class AlarmsService {
     private _total$ = new BehaviorSubject<number>(0);
 
     private alarmsList: Alarm[] = [];
-
+    
     private _state: State = {
         page: 1,
         pageSize: 10,
@@ -67,6 +67,9 @@ export class AlarmsService {
         });
 
         this._search$.next();
+        setInterval(() => {
+            this._search$.next();
+        }, 30000);
     }
 
     private apiUrl = environment.apiUrl;

@@ -23,7 +23,6 @@ export class DashboardComponent implements OnInit {
 
     interval: any;
     sources: Source[] = [];
-    chartSources: Source[] = [];
     alarms: Alarm[] = [];
     sourceLogs: SourceLogs[] = [];
     numOfDailyPings: number = 24 * 60 * 2;
@@ -34,26 +33,16 @@ export class DashboardComponent implements OnInit {
 
     private async getAllSources(): Promise<void> {
         await this.sourceService
-                    .getAllSources()
+                    .getSourcesWithoutKafkaTopics()
                     .then((sources) => {
                         this.sources = sources;
-                        this.getChartSources();
+                        this.getLogsForSources();
                     });
-    }
-
-    private getChartSources(): void {
-        this.chartSources = [];
-        for (const src of this.sources) {
-            if (src.typeId !== 'kafkaTopicLastTs') {
-                this.chartSources.push(src);
-            }
-        }
-        this.getLogsForSources();
     }
 
     private async getLogsForSources(): Promise<void> {
         this.sourceLogs = [];
-        for (const src of this.chartSources) {
+        for (const src of this.sources) {
             const srcLog = new SourceLogs();
             srcLog.source = src;
             srcLog.logs = await this.getAllLogsForSource(src.id);

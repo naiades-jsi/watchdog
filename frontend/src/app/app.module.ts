@@ -12,6 +12,7 @@ import { FrameComponent } from 'src/app/components/frame/frame.component';
 import { DashboardComponent } from 'src/app/components/dashboard/dashboard.component';
 import { AlarmTableComponent } from 'src/app/components/alarm-table/alarm-table.component';
 import { SortableDirective } from 'src/app/directives/sortable.directive';
+import { KafkaTopicsComponent } from './components/kafka-topics/kafka-topics.component';
 
 @NgModule({
     declarations: [
@@ -19,7 +20,8 @@ import { SortableDirective } from 'src/app/directives/sortable.directive';
         FrameComponent,
         DashboardComponent,
         AlarmTableComponent,
-        SortableDirective
+        SortableDirective,
+        KafkaTopicsComponent
     ],
     imports: [
         BrowserModule,

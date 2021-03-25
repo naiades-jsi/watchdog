@@ -33,7 +33,7 @@
                     <h3 class="m-0 font-weight-bold text-primary">Up time in the last 30 days</h3>
                 </div>
                 <div class="card-body">
-                    <div class="chart-wrapper" *ngFor="let source of chartSources; let i = index">
+                    <div class="chart-wrapper" *ngFor="let source of sources; let i = index">
                         <hr class="sidebar-divider my-0" *ngIf="i != 0">
                         <strong>{{source.name}} {{overallUpPercentage[i]}}%</strong>
                         <div class="chart-area">

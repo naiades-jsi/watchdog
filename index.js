@@ -22,7 +22,7 @@ const dao = new AppDao();
 const sourceRepo = new SourceRepository(dao);
 const alarmsRepo = new AlarmsRepository(dao);
 const logsRepo = new LogsRepository(dao);
-const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo);
+const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo, emailService);
 
 /**
  * SERVER configuration
@@ -121,7 +121,7 @@ app.get('/source/:id', (req, res) => {
 });
 
 app.post('/source', (req, res) => {
-    sourceRepo.create(req.body.name, req.body.typeId, req.body.config)
+    sourceRepo.create(req.body.name, req.body.typeId, req.body.config, req.body.sendEmail)
         .then((response) => {
             res.send(response);
         });

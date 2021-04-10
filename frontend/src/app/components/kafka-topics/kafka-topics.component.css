@@ -1,0 +1,13 @@
+.dot {
+    width: 30px;
+    margin-right: 1em;
+}
+
+.col-auto {
+    font-size: 20px;
+}
+
+a, a:hover, a:focus, a:active {
+    text-decoration: none;
+    color: inherit;
+}

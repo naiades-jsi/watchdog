@@ -11,15 +11,15 @@
         <div class="col-xl-3 col-md-6 mb-4" *ngFor="let source of sources; let i = index">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="col">
-                    <div class="card-body" data-toggle="collapse" href="#multiCollapseExample_{{i}}" aria-expanded="false" aria-controls="multiCollapseExample_{{i}}">
+                    <a class="card-body" data-toggle="collapse" href="#collapseInfo{{source.id}}" role="button" aria-expanded="false" aria-controls="collapseInfo">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{source.name}}</div>
-                                <div class="col-auto" *ngIf="source.lastCheck == source.lastSuccess; then up else down"></div>
                             </div>
+                            <div class="col-auto" *ngIf="source.lastCheck == source.lastSuccess; then up else down"></div>
                         </div>
-                    </div>
-                    <div class="collapse multi-collapse" id="multiCollapseExample_{{i}}">
+                    </a>
+                    <div class="collapse multi-collapse" id="collapseInfo{{source.id}}">
                         <div class="card-body">
                             TODO add kafka message
                         </div>

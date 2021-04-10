@@ -13,7 +13,6 @@ class Kafka {
         this.logsRepo = logsRepo;
         this.emailService = emailService;
 
-        this.counter = 0;
         this.connect(host, topics);
     }
 
@@ -184,22 +183,30 @@ class Kafka {
                         await this.logsRepo(source.id, "UP");
                         source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                         source.lastSuccess = source.lastCheck;
+                        source.sendEmail = 0;
+                        source.message = msg.value;
                         this.sourceRepo.update(source);
                     } else {
                         console.log('Invalid data on Kafka source ', source.id);
 
                         await this.logsRepo.create(source.id, "DOWN");
                         source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                        
+                        if(this.checkJson(source.config) && source.sendEmail == 0){
+                            source.sendEmail = 1;
+                            const parsedConfig = JSON.parse(source.config);
+                            if('email' in parsedConfig) {
+                                const email = parsedConfig.email;
+                                this.emailService.sendEmail(email, "Kafka topic error!", 
+                                        "Invalid data on kafka source " + source.id + "!\nData received: " + msg);
+                            } else {
+                                this.emailService.sendEmail("Kafka topic error!", 
+                                        "Invalid data on kafka source " + source.id + "!\nData received: " + msg);
+                            }
+                        }
+                        source.message = msg.value;
                         this.sourceRepo.update(source);
                         this.alarmRepo.create('Invalid data', source.id, 'Non-JSON or misformatted message on topic');
-                        
-                        if(this.counter >= 5){
-                            this.emailService.sendEmail("Kafka topic error!", 
-                            "Invalid data on kafka source " + source.id + "!\nData received: " + msg);
-
-                            this.counter = 0;
-                        }
-                        this.counter++;
                     }
                 }
             } catch(e){

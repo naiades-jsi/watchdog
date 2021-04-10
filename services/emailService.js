@@ -26,6 +26,27 @@ class EmailService {
             }
         });
     }
+
+    sendEmail(receiver, subject, textContent){
+        if(receiver == undefined || receiver == null || receiver == "") {
+            sendMail(subject, textContent);
+        } else {
+            const msg = {
+                from: process.env.SENDER_EMAIL,
+                to: receiver,
+                subject: subject,
+                text: textContent 
+            };
+    
+            this.transporter.sendMail(msg, (err, info) => {
+                if(err){
+                    console.log("ERROR! " + err);
+                } else {
+                    console.log("INFO " + info);
+                }
+            });
+        }
+    }
 }
 
 module.exports = EmailService;

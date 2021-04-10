@@ -14,7 +14,8 @@ class SourceRepository {
             config TEXT NOT NULL,
             lastCheck DATETIME,
             lastSuccess DATETIME,
-            sendEmail INTEGER NOT NULL);`
+            sendEmail INTEGER NOT NULL,
+            message TEXT);`
         return this.dao.run(sql);
     }
 
@@ -54,7 +55,7 @@ class SourceRepository {
     }
 
     update(source){
-        const { id, ts, name, typeId, config, lastCheck, lastSuccess, sendEmail } = source;
+        const { id, ts, name, typeId, config, lastCheck, lastSuccess, sendEmail, msg} = source;
         const sql = `UPDATE source 
             SET ts = ?,
             name = ?,
@@ -62,9 +63,10 @@ class SourceRepository {
             config = ?,
             lastCheck = ?,
             lastSuccess = ?,
-            sendEmail = ?
+            sendEmail = ?,
+            message = ?
             WHERE id = ?`;
-        return this.dao.run(sql, [ts, name, typeId, config, lastCheck, lastSuccess, sendEmail, id]);
+        return this.dao.run(sql, [ts, name, typeId, config, lastCheck, lastSuccess, sendEmail, msg, id]);
     }
 
     delete(id){

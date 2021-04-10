@@ -7,4 +7,6 @@ export class Source {
     lastCheck!: string;
     frequency!: number;
     lastSuccess!: string;
+    sendEmail!: number;
+    message!: string;
 }

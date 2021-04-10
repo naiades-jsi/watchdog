@@ -6,6 +6,34 @@
         <h1 class="h3 mb-0 text-gray-800">Kafka topics</h1>
     </div>
 
-    TO BE IMPLEMENTED
-    https://mdbootstrap.com/snippets/standard/mdbootstrap/2898164?view=side
+    <div class="row">
+        <!-- Status Kafka Card -->
+        <div class="col-xl-3 col-md-6 mb-4" *ngFor="let source of sources; let i = index">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="col">
+                    <div class="card-body" data-toggle="collapse" href="#multiCollapseExample_{{i}}" aria-expanded="false" aria-controls="multiCollapseExample_{{i}}">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{source.name}}</div>
+                                <div class="col-auto" *ngIf="source.lastCheck == source.lastSuccess; then up else down"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collapse multi-collapse" id="multiCollapseExample_{{i}}">
+                        <div class="card-body">
+                            TODO add kafka message
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
 </div>
+<!-- Dynamic components for status -->
+<ng-template #up>
+    <img src="../../../assets/images/green_icon.ico" class="dot">UP
+</ng-template>
+<ng-template #down>
+    <img src="../../../assets/images/red_icon.ico" class="dot">DOWN
+</ng-template>

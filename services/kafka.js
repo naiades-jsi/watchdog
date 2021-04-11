@@ -13,27 +13,57 @@ class Kafka {
         this.logsRepo = logsRepo;
         this.emailService = emailService;
 
+        this.noiseContent = ['time', 'leak_state', 'noise_db', 'spre_db'];
+        this.pressureContent = ['time', 'value'];
+        this.weatherObservedContent = ['stampm', 'pressure', 'dew_point', 'precipitation', 'humidity', 'temperature', 'wind_bearing', 'wind_speed', 'illuminance', 'pressure_tendency'];
+        this.flowContent = ['time', 'value'];
+        this.volumeContent = ['time', 'value'];
+        this.levelContent = ['time', 'value'];
+        this.conductivityContent = ['time', 'value'];
+        this.debitmeterContent = ['flow_rate_value', 'totalizer1', 'totalizer2', 'consumer_totalizer', 'analog_input1', 'analog_input2', 'batery_capacity', 'alarms_in_decimal'];
+
         this.connect(host, topics);
+    }
+
+    getExpectedKafkaContent(type){
+        switch(type){
+            case 'noise':
+                return this.noiseContent;
+            case 'pressure':
+                return this.pressureContent;
+            case 'weatherObserved':
+                return this.weatherObservedContent;
+            case 'flow':
+                return this.flowContent;
+            case 'volume':
+                return this.volumeContent;
+            case 'level':
+                return this.levelContent;
+            case 'conductivity':
+                return this.conductivityContent;
+            case 'debitmeter':
+                return this.debitmeterContent;
+        }
     }
 
     checkSyntaxSemantic(type, message){
         switch(type){
             case 'noise':
-                return this.checkNoise(message);
+                return this.checkContent(this.noiseContent, message);
             case 'pressure':
-                return this.checkPressure(message);
+                return this.checkContent(this.pressureContent, message);
             case 'weatherObserved':
-                return this.checkWeatherObserved(message);
+                return this.checkContent(this.weatherObservedContent, message);
             case 'flow':
-                return this.checkFlow(message);
+                return this.checkContent(this.flowContent, message);
             case 'volume':
-                return this.checkVolume(message);
+                return this.checkContent(this.volumeContent, message);
             case 'level':
-                return this.checkLevel(message);
+                return this.checkContent(this.levelContent, message);
             case 'conductivity':
-                return this.checkConductivity(message);
+                return this.checkContent(this.conductivityContent, message);
             case 'debitmeter':
-                return this.checkDebitmeter(message)
+                return this.checkContent(this.debitmeterContent, message);
         }
     }
 
@@ -47,106 +77,19 @@ class Kafka {
         }
     }
 
-    checkNoise(message){
-        if(this.checkJson(message)){
+    checkContent(content, message) {
+        if(this.checkJson(message)) {
             const rec = JSON.parse(message);
-            if(('time' in rec) && ('leak_state' in rec) &&
-                ('noise_db' in rec) && ('spre_db' in rec)) {
-                return true;
-            } else {
-                console.log(rec);
-                return false;
+            let counter = 0;
+            for(let con of content) {
+                if(con in rec) {
+                    counter++;
+                } else {
+                    return false;
+                }
             }
-        }
-        return false;
-    }
-
-    checkPressure(message){
-        if(this.checkJson(message)){
-            const rec = JSON.parse(message);
-            if(('time' in rec) && ('value' in rec)){
+            if(counter == content.length) {
                 return true;
-            } else {
-                console.log(rec);
-                return false;
-            }
-        }
-        return false;
-    }
-
-    checkWeatherObserved(message){
-        if(this.checkJson(message)){
-            const rec = JSON.parse(message);
-            if(('stampm' in rec) && ('pressure' in rec) && ('dew_point' in rec) && 
-                ('precipitation' in rec) && ('humidity' in rec) && ('temperature' in rec) &&
-                ('wind_bearing' in rec) && ('wind_speed' in rec) && ('illuminance' in rec) &&
-                ('pressure_tendency' in rec)){
-                return true;
-            } else {
-                console.log(rec);
-                return false;
-            }
-        }
-        return false;
-    }
-
-    checkFlow(message){
-        if(this.checkJson(message)){
-            const rec = JSON.parse(message);
-            if(('time' in rec) && ('value' in rec)){
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    checkVolume(message){
-        if(this.checkJson(message)){
-            const rec = JSON.parse(message);
-            if(('time' in rec) && ('value' in rec)){
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    checkLevel(message){
-        if(this.checkJson(message)){
-            const rec = JSON.parse(message);
-            if(('time' in rec) && ('value' in rec)){
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    checkConductivity(message){
-        if(this.checkJson(message)){
-            const rec = JSON.parse(message);
-            if(('time' in rec) && ('value' in rec)){
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    checkDebitmeter(message){
-        if(this.checkJson(message)){
-            const rec = JSON.parse(message);
-            if(('flow_rate_value' in rec) && ('totalizer1' in rec) && ('totalizer2' in rec) &&
-            ('consumer_totalizer' in rec) && ('analog_input1' in rec) && ('analog_input2' in rec) &&
-            ('batery_capacity' in rec) && ('alarms_in_decimal' in rec)){
-                return true;
-            } else {
-                return false;
             }
         }
         return false;
@@ -194,14 +137,18 @@ class Kafka {
                         
                         if(this.checkJson(source.config) && source.sendEmail == 0){
                             source.sendEmail = 1;
+
+                            const expectedKafkaContent = getExpectedKafkaContent(this.types[index]);
                             const parsedConfig = JSON.parse(source.config);
                             if('email' in parsedConfig) {
                                 const email = parsedConfig.email;
                                 this.emailService.sendEmail(email, "Kafka topic error!", 
-                                        "Invalid data on kafka source " + source.id + "!\nData received: " + msg);
+                                        "Invalid data on kafka source " + source.name + " with ID: " + source.id + "!\n" + 
+                                        "Expecting kafka topic to have the next values: " + expectedKafkaContent.toString() + ", but received: " + msg);
                             } else {
                                 this.emailService.sendEmail("Kafka topic error!", 
-                                        "Invalid data on kafka source " + source.id + "!\nData received: " + msg);
+                                        "Invalid data on kafka source " + source.name + " with ID: " + source.id + "!\n" + 
+                                        "Expecting kafka topic to have the next values: " + expectedKafkaContent.toString() + ", but received: " + msg);
                             }
                         }
                         source.message = msg.value;

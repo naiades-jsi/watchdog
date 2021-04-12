@@ -43,6 +43,8 @@ class Kafka {
                 return this.conductivityContent;
             case 'debitmeter':
                 return this.debitmeterContent;
+            default:
+                return 'This type does not exist!';
         }
     }
 
@@ -69,7 +71,7 @@ class Kafka {
 
     checkJson(message){
         try {
-            JSON.parse(message);
+            JSON.parse(JSON.stringify(message));
             return true;
         } catch(e){
             console.log(e);
@@ -115,15 +117,14 @@ class Kafka {
             const index = this.topics.indexOf(msg.topic);
             const source = this.sources[index];
 
-            try{
+            try {
                 if(Date.now() - this.updateTs[index] > this.threshold) {
                     const success = this.checkSyntaxSemantic(this.types[index], msg.value);
 
                     if(success){
                         this.updateTs[index] = Date.now();
-                        console.log('Updating Kafka source: ', source.id);
 
-                        await this.logsRepo(source.id, "UP");
+                        await this.logsRepo.create(source.id, "UP");
                         source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                         source.lastSuccess = source.lastCheck;
                         source.sendEmail = 0;
@@ -138,7 +139,7 @@ class Kafka {
                         if(this.checkJson(source.config) && source.sendEmail == 0){
                             source.sendEmail = 1;
 
-                            const expectedKafkaContent = getExpectedKafkaContent(this.types[index]);
+                            const expectedKafkaContent = this.getExpectedKafkaContent(this.types[index]);
                             const parsedConfig = JSON.parse(source.config);
                             if('email' in parsedConfig) {
                                 const email = parsedConfig.email;
@@ -157,12 +158,12 @@ class Kafka {
                     }
                 }
             } catch(e){
-                console.log('Kafka callback error: ', err);
+                console.log('Kafka callback error exception:', e);
             }
         });
 
         this.consumer.on('error', (err) => {
-            console.log('Error: ', err);
+            console.log('Error:', err);
         });
     }
 }

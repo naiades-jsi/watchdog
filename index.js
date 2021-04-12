@@ -127,6 +127,13 @@ app.post('/source', (req, res) => {
         });
 });
 
+app.delete('/source/:id', (req, res) => {
+    sourceRepo.delete(req.params.id)
+        .then((response) => {
+            res.send(response);
+        });
+});
+
 /**
  * ALARMS
  */

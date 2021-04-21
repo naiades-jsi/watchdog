@@ -1,0 +1,42 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Kafka topics</h1>
+    </div>
+
+    <div class="row">
+        <!-- Status Kafka Card -->
+        <div class="col-xl-3 col-md-6 mb-4" *ngFor="let source of sources; let i = index">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="col">
+                    <a class="card-body" data-toggle="collapse" href="#collapseInfo{{source.id}}" role="button" aria-expanded="false" aria-controls="collapseInfo">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{source.name}}</div>
+                            </div>
+                            <div class="col-auto" *ngIf="source.lastCheck == source.lastSuccess; then up else down"></div>
+                        </div>
+                    </a>
+                    <div class="collapse multi-collapse" id="collapseInfo{{source.id}}">
+                        <div class="card-body">
+                            <b>Last data received:</b><br>
+                            {{source.lastCheck}}<br>
+                            <b>Last message:</b><br>
+                            {{source.message}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+<!-- Dynamic components for status -->
+<ng-template #up>
+    <img src="../../../assets/images/green_icon.ico" class="dot">UP
+</ng-template>
+<ng-template #down>
+    <img src="../../../assets/images/red_icon.ico" class="dot">DOWN
+</ng-template>

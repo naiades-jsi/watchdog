@@ -3,10 +3,11 @@ const isReachable = require('is-reachable');
 const KafkaNode = require('./kafka');
 
 class Watchdog {
-    constructor(sourceRepository, logsRepository, alarmsRepository){
+    constructor(sourceRepository, logsRepository, alarmsRepository, emailService){
         this.sourceRepo = sourceRepository;
         this.logsRepo = logsRepository;
         this.alarmsRepo = alarmsRepository;
+        this.emailService = emailService;
     }
 
     async checkSource(source){
@@ -17,12 +18,20 @@ class Watchdog {
             const res = await this.testSocket(source);
             if(res){
                 await this.logsRepo.create(source.id, "UP");
-                source.lastClastCheckheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                 source.lastSuccess = source.lastCheck;
+                source.sendEmail = 0;
                 this.sourceRepo.update(source);
             } else {
                 this.logsRepo.create(source.id, "DOWN");
                 source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+
+                let diff = new Date(source.lastCheck) - new Date(source.lastSuccess);
+                if((source.lastSuccess != null || diff >= 3600000) && source.sendEmail == 0){
+                    source.sendEmail = 1;
+                    this.emailService.sendEmail("Source " + source.name + " down!",
+                            "There is a problem with source " + source.name + ". Last successful ping was at " + source.lastSuccess + ".");
+                }
                 this.sourceRepo.update(source);
             }
         } else if (source.typeId === 'ping' || source.typeId === 'master') {
@@ -31,10 +40,18 @@ class Watchdog {
                 await this.logsRepo.create(source.id, "UP");
                 source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
                 source.lastSuccess = source.lastCheck;
+                source.sendEmail = 0;
                 this.sourceRepo.update(source);
             } else {
                 this.logsRepo.create(source.id, "DOWN");
                 source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                
+                let diff = new Date(source.lastCheck) - new Date(source.lastSuccess);
+                if((source.lastSuccess == null || diff >= 3600000) && source.sendEmail == 0){
+                    source.sendEmail = 1;
+                    this.emailService.sendEmail("Source " + source.name + " down!",
+                            "There is a problem with source " + source.name + ". Last successful ping was at " + source.lastSuccess + ".");
+                }
                 this.sourceRepo.update(source);
             }
         } else if(source.typeId === 'pingCheckIn') {
@@ -56,7 +73,7 @@ class Watchdog {
     async testPing(source) {
         const conf = JSON.parse(source.config);
         const target = conf.target;
-        
+
         return await isReachable(target);
     }
 
@@ -84,7 +101,7 @@ class Watchdog {
 
         // connect to servers
         this.servers.forEach((server, idx) => {
-            let kafka = new KafkaNode(server.kafka, server.topics, server.types, server.sources, this.sourceRepo, this.alarmsRepo, this.logsRepo);
+            let kafka = new KafkaNode(server.kafka, server.topics, server.types, server.sources, this.sourceRepo, this.alarmsRepo, this.logsRepo, this.emailService);
             this.servers[idx].node = kafka;
         });
     }

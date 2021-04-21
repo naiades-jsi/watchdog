@@ -13,13 +13,15 @@ class SourceRepository {
             typeId VARCHAR(64) NOT NULL,
             config TEXT NOT NULL,
             lastCheck DATETIME,
-            lastSuccess DATETIME);`
+            lastSuccess DATETIME,
+            sendEmail INTEGER NOT NULL,
+            message TEXT);`
         return this.dao.run(sql);
     }
 
-    create(name, typeId, config){
-        const sql = `INSERT INTO source (name, typeId, config) VALUES (?, ?, ?)`;
-        return this.dao.run(sql, [name, typeId, config]);
+    create(name, typeId, config, sendEmail){
+        const sql = `INSERT INTO source (name, typeId, config, sendEmail) VALUES (?, ?, ?, ?)`;
+        return this.dao.run(sql, [name, typeId, config, sendEmail]);
     }
 
     getById(id){
@@ -53,16 +55,18 @@ class SourceRepository {
     }
 
     update(source){
-        const { id, ts, name, typeId, config, lastCheck, lastSuccess } = source;
+        const { id, ts, name, typeId, config, lastCheck, lastSuccess, sendEmail, message } = source;
         const sql = `UPDATE source 
             SET ts = ?,
             name = ?,
             typeId = ?,
             config = ?,
             lastCheck = ?,
-            lastSuccess = ?
+            lastSuccess = ?,
+            sendEmail = ?,
+            message = ?
             WHERE id = ?`;
-        return this.dao.run(sql, [ts, name, typeId, config, lastCheck, lastSuccess, id]);
+        return this.dao.run(sql, [ts, name, typeId, config, lastCheck, lastSuccess, sendEmail, message, id]);
     }
 
     delete(id){

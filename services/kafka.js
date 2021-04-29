@@ -17,6 +17,7 @@ class Kafka {
         this.pressureContent = ['time', 'value'];
         this.weatherObservedContent = ['stampm', 'pressure', 'dew_point', 'precipitation', 'humidity', 'temperature', 'wind_bearing', 'wind_speed', 'illuminance', 'pressure_tendency'];
         this.flowContent = ['time', 'value'];
+        this.flowContentBraila = ['time', 'flow_rate_value', 'totalizer1', 'totalizer2', 'consumer_totalizer', 'analog_input1', 'analog_input2', 'batery_capacity', 'alarms_in_decimal'];
         this.volumeContent = ['time', 'value'];
         this.levelContent = ['time', 'value'];
         this.conductivityContent = ['time', 'value'];
@@ -43,6 +44,8 @@ class Kafka {
                 return this.conductivityContent;
             case 'debitmeter':
                 return this.debitmeterContent;
+            case 'flowBraila':
+                return this.flowContentBraila;
             default:
                 return 'This type does not exist!';
         }
@@ -58,6 +61,8 @@ class Kafka {
                 return this.checkContent(this.weatherObservedContent, message);
             case 'flow':
                 return this.checkContent(this.flowContent, message);
+            case 'flowBraila':
+                return this.checkContent(this.flowContentBraila, message);
             case 'volume':
                 return this.checkContent(this.volumeContent, message);
             case 'level':
@@ -98,7 +103,8 @@ class Kafka {
     }
 
     connect(host, topics){
-        this.client = new kafka.KafkaClient({kafkaHost: host});
+        // console.log(host)
+        this.client = new kafka.KafkaClient({kafkaHost: host, requestTimeout: 60000});
         this.offset = new kafka.Offset(this.client);
 
         const options = {
@@ -116,47 +122,54 @@ class Kafka {
         this.consumer = new kafka.Consumer(this.client, payloads, options);
 
         this.consumer.on('message', (msg) => {
+            // console.log('MESSAGE received ' + msg);
             const index = this.topics.indexOf(msg.topic);
             const source = this.sources[index];
 
+            // console.log(this.topics + " " + index);
+            // console.log(this.sources + " " + source);
             try {
-                // if(Date.now() - this.updateTs[index] > this.threshold) {
-                const success = this.checkSyntaxSemantic(this.types[index], msg.value);
-                if(success){
-                    this.updateTs[index] = Date.now();
-                    
-                    this.logsRepo.create(source.id, "UP");
-                    source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-                    source.lastSuccess = source.lastCheck;
-                    source.sendEmail = 0;
-                    source.message = msg.value;
-                    
-                    this.sourceRepo.update(source);
-                } else {
-                    console.log('Invalid data on Kafka source ', source.id);
-
-                    this.logsRepo.create(source.id, "DOWN");
-                    source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
-
-                    if(this.checkJson(source.config) && source.sendEmail == 0){
-                        source.sendEmail = 1;
-
+                if(Date.now() - this.updateTs[index] > this.threshold) {
+                    const success = this.checkSyntaxSemantic(this.types[index], msg.value);
+                    // console.log("IS SUCCESS? " + success);
+                    if(success){
+                        this.updateTs[index] = Date.now();
+                        
+                        this.logsRepo.create(source.id, "UP");
+                        source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+                        source.lastSuccess = source.lastCheck;
+                        source.sendEmail = 0;
+                        source.message = msg.value;
+                        // console.log("SAVING SOURCE " + source);
+                        this.sourceRepo.update(source);
+                    } else {
+                        console.log('Invalid data on Kafka source ', source.id);
                         const expectedKafkaContent = this.getExpectedKafkaContent(this.types[index]);
-                        const parsedConfig = JSON.parse(source.config);
-                        if('email' in parsedConfig) {
-                            const email = parsedConfig.email;
-                            this.emailService.sendEmail(email, "Kafka topic error!", 
-                                    "Invalid data on kafka source " + source.name + " with ID: " + source.id + "!\n" + 
-                                    "Expecting kafka topic to have the next values: " + expectedKafkaContent.toString() + ", but received: " + msg);
-                        } else {
-                            this.emailService.sendEmail("Kafka topic error!", 
-                                    "Invalid data on kafka source " + source.name + " with ID: " + source.id + "!\n" + 
-                                    "Expecting kafka topic to have the next values: " + expectedKafkaContent.toString() + ", but received: " + msg);
+                        this.logsRepo.create(source.id, "DOWN");
+                        source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+
+                        if(this.checkJson(source.config) && source.sendEmail == 0){
+                            source.sendEmail = 1;
+
+                            const parsedConfig = JSON.parse(source.config);
+                            if('email' in parsedConfig) {
+                                const email = parsedConfig.email;
+                                console.log("Sending email to " + email + " " + parsedConfig);
+                                this.emailService.sendEmail(email, "Kafka topic error!", 
+                                        "Invalid data on kafka source " + source.name + " with ID: " + source.id + "!\n" + 
+                                        "Expecting kafka topic to have the next values: " + expectedKafkaContent.toString() + ", but received: " + msg);
+                            } else {
+                                console.log("Sending email to admin");
+                                this.emailService.sendEmail("Kafka topic error!", 
+                                        "Invalid data on kafka source " + source.name + " with ID: " + source.id + "!\n" + 
+                                        "Expecting kafka topic to have the next values: " + expectedKafkaContent.toString() + ", but received: " + msg);
+                            }
                         }
+                        source.message = msg.value;
+                        this.sourceRepo.update(source);
+                        this.alarmRepo.create('Invalid data', source.name, "Invalid data on kafka source " + source.name + " with ID: " + source.id + "!\n" + 
+                                                                                "Expecting kafka topic to have the next values: " + expectedKafkaContent.toString() + ", but received: " + msg);
                     }
-                    source.message = msg.value;
-                    this.sourceRepo.update(source);
-                    this.alarmRepo.create('Invalid data', source.id, 'Non-JSON or misformatted message on topic');
                 }
             } catch(e){
                 this.emailService.sendEmail("Kafka callback error exception", e);
@@ -167,6 +180,8 @@ class Kafka {
         this.consumer.on('error', (err) => {
             this.emailService.sendEmail("Error", err);
             console.log('Error:', err);
+            console.log(this.consumer);
+            console.log(err.topic);
         });
 
         this.consumer.on('offsetOutOfRange', (kafkaCons) => {

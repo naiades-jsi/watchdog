@@ -30,7 +30,7 @@ const watchdog = new Watchdog(sourceRepo, logsRepo, alarmsRepo, emailService);
 const cron_schedule_ping = '*/30 * * * * *';
 const cron_schedule_clean = '0 0 0 * * *';
 const app = express();
-app.listen(process.env.HTTP_PORT, () => {
+app.listen(process.env.HTTP_PORT, '0.0.0.0', () => {
     console.log("Server running on port %PORT%".replace("%PORT%", process.env.HTTP_PORT))
 });
 app.use(cors({origin: process.env.FRONT_URL}));
@@ -134,6 +134,13 @@ app.delete('/source/:id', (req, res) => {
         });
 });
 
+app.put('/source', (req, res) => {
+    sourceRepo.update(req.body)
+        .then((response) => {
+            res.send(response);
+        });
+})
+
 /**
  * ALARMS
  */
@@ -210,4 +217,4 @@ const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
 /**
  * START Kafka
  */
-// watchdog.testKafkaTopic();
+watchdog.testKafkaTopic();

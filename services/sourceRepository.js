@@ -30,6 +30,12 @@ class SourceRepository {
         return this.dao.get(sql, [id]);
     }
 
+    getByName(name) {
+        const sql = `SELECT * FROM source
+                    WHERE source.name = ?`;
+        return this.dao.get(sql, [name]);
+    }
+
     getAll(){
         const sql = `SELECT * FROM source`;
         return this.dao.all(sql);

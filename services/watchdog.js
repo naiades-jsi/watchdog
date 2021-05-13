@@ -77,6 +77,20 @@ class Watchdog {
         return await isReachable(target);
     }
 
+    async testPingCheckIn(sourceName) {
+        const source = await this.sourceRepo.getByName(sourceName);
+        console.log(source);
+        if(source !== null || source !== undefined) {
+            source.lastCheck = new Date().add(-1).hour().toString("yyyy-MM-dd HH:mm:ss");
+            source.lastSuccess = source.lastCheck;
+            source.sendEmail = 0;
+            this.sourceRepo.update(source);
+            this.logsRepo.create(source.id, "UP");
+        } else {
+            this.alarmsRepo.create("Can't find source with name " + req.params.name, -1, "Wrong source name for ping check in!");
+        }
+    }
+
     async testKafkaTopic(){
         const kafkaSources = await this.sourceRepo.getKafkaSources();
         this.servers = [];

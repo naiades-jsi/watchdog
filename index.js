@@ -197,12 +197,22 @@ app.post('/log', (req, res) => {
 });
 
 /**
+ * PING CHECK IN
+ */
+app.get('/pingCheckIn/:sourceName', (req, res) => {
+    watchdog.testPingCheckIn(req.params.sourceName);
+    res.send('Done!');
+});
+
+/**
  * CRON SCHEDULER for checking if system is working
  */
 const job = schedule.scheduleJob(cron_schedule_ping, async () => {
     let availableSources = await sourceRepo.getSourcesWithoutKafkaTopics();
     for(let i = 0; i < availableSources.length; i++){
-        watchdog.checkSource(availableSources[i]);
+        if(availableSources[i].typeId !== 'pingCheckIn'){
+            watchdog.checkSource(availableSources[i]);
+        }
     }
 });
 
@@ -217,4 +227,4 @@ const job_clean = schedule.scheduleJob(cron_schedule_clean, async () => {
 /**
  * START Kafka
  */
-watchdog.testKafkaTopic();
+// watchdog.testKafkaTopic();

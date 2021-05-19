@@ -22,6 +22,10 @@ class Kafka {
         this.levelContent = ['time', 'value'];
         this.conductivityContent = ['time', 'value'];
         this.debitmeterContent = ['flow_rate_value', 'totalizer1', 'totalizer2', 'consumer_totalizer', 'analog_input1', 'analog_input2', 'batery_capacity', 'alarms_in_decimal'];
+        this.moistureContent = ['time', 'value'];
+        this.brailaPressureAD = ['timestamp', 'status', 'status_code', 'value', 'algorithm'];
+        this.brailaNightFlowAD = ['timestamp', 'status', 'status_code', 'value', 'algorithm'];
+        this.alicanteSalinityAD = ['sensor', 'algorithm', 'score', 'timestamp', 'explanation'];
 
         this.connect(host, topics);
     }
@@ -46,6 +50,14 @@ class Kafka {
                 return this.debitmeterContent;
             case 'flowBraila':
                 return this.flowContentBraila;
+            case 'soilMoisture':
+                return this.moistureContent;
+            case 'brailaPressureAD':
+                return this.brailaPressureAD;
+            case 'brailaNightFlowAD':
+                return this.brailaNightFlowAD;
+            case 'alicanteSalinityAD':
+                return this.alicanteSalinityAD;
             default:
                 return 'This type does not exist!';
         }
@@ -71,6 +83,14 @@ class Kafka {
                 return this.checkContent(this.conductivityContent, message);
             case 'debitmeter':
                 return this.checkContent(this.debitmeterContent, message);
+            case 'soilMoisture':
+                return this.checkContent(this.moistureContent, message);
+            case 'brailaPressureAD':
+                return this.checkContent(this.brailaPressureAD, message);
+            case 'brailaNightFlowAD':
+                return this.checkContent(this.brailaNightFlowAD, message);
+            case 'alicanteSalinityAD':
+                return this.checkContent(this.alicanteSalinityAD, message);
         }
     }
 
